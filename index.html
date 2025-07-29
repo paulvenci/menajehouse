@@ -1,0 +1,1291 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Registro de Compras</title>
+    
+    <!-- Bootstrap CSS CDN -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" xintegrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <!-- Google Fonts - Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Material Icons (for icons) -->
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8f9fa; /* Bootstrap's default light background */
+        }
+        
+        .header-bg {
+            background-color: #3f51b5; /* Deep indigo for header */
+        }
+
+        .card-title-bg {
+            background-color: #3f51b5; /* Deep indigo for card titles */
+        }
+
+        .error-text {
+            color: #dc3545; /* Bootstrap's danger red */
+            font-size: 0.875em; /* Smaller font size */
+            margin-top: 0.25rem;
+            display: block;
+        }
+        
+        .form-control.is-invalid {
+            border-color: #dc3545 !important;
+        }
+
+        .autocomplete-container {
+            position: relative;
+            width: 100%;
+        }
+        
+        .autocomplete-list {
+            position: absolute;
+            z-index: 1050; /* Above Bootstrap modals */
+            top: 100%;
+            left: 0;
+            right: 0;
+            max-height: 12.5rem; /* 200px */
+            overflow-y: auto;
+            background-color: white;
+            border: 1px solid #dee2e6; /* Bootstrap border color */
+            border-top: none;
+            border-bottom-left-radius: 0.25rem;
+            border-bottom-right-radius: 0.25rem;
+            box-shadow: 0 0.5rem 1rem rgba(0,0,0,0.15); /* Bootstrap shadow */
+            display: none;
+        }
+        
+        .autocomplete-list div {
+            padding: 0.625rem; /* 10px */
+            cursor: pointer;
+        }
+        
+        .autocomplete-list div:hover {
+            background-color: #e9ecef; /* Bootstrap light gray */
+        }
+        
+        .autocomplete-active {
+            background-color: #cfe2ff !important; /* Bootstrap primary-100 */
+        }
+
+        .text-editor {
+            width: 100%;
+            min-height: 6.25rem; /* 100px */
+            border: 1px solid #dee2e6;
+            padding: 0.5rem; /* 8px */
+            margin-top: 0.5rem; /* 8px */
+            border-radius: 0.25rem;
+            font-family: inherit;
+        }
+        
+        .copy-success {
+            background-color: #28a745 !important; /* Bootstrap success green */
+            color: white !important;
+        }
+
+        /* Custom toast container */
+        .toast-container {
+            position: fixed;
+            bottom: 1rem;
+            right: 1rem;
+            z-index: 2000;
+        }
+
+        /* Tab specific styles */
+        .nav-tabs .nav-link {
+            color: rgba(255, 255, 255, 0.7);
+            font-weight: 500;
+            border: none;
+            border-bottom: 2px solid transparent;
+            transition: color 0.3s ease, border-bottom 0.3s ease;
+        }
+
+        .nav-tabs .nav-link.active {
+            color: white;
+            background-color: transparent;
+            border-color: white;
+        }
+
+        .nav-tabs .nav-link:hover {
+            border-color: rgba(255, 255, 255, 0.5);
+        }
+
+        .stats-item {
+            padding: 0.75rem;
+            border-bottom: 1px solid #eee;
+            background-color: #f8f9fa;
+            border-radius: 0.25rem;
+        }
+        .stats-item:last-child {
+            border-bottom: none;
+        }
+        .stats-item strong {
+            display: block;
+            margin-bottom: 0.25rem;
+            color: #3f51b5; /* Deep indigo for strong text */
+        }
+
+        /* Material Icons sizing for Bootstrap buttons */
+        .btn .material-icons {
+            font-size: 1.25rem; /* Adjust icon size */
+            vertical-align: middle;
+        }
+
+        /* Accordion custom styles */
+        .accordion-button:not(.collapsed) {
+            color: #3f51b5; /* Indigo for active accordion header */
+            background-color: #e6e9f5;
+            box-shadow: inset 0 -1px 0 rgba(0,0,0,.125);
+        }
+        .accordion-button:focus {
+            box-shadow: none;
+            border-color: transparent;
+        }
+        .accordion-item {
+            border: 1px solid rgba(0,0,0,.125);
+            margin-bottom: 0.5rem;
+            border-radius: 0.25rem;
+        }
+        .accordion-body {
+            padding: 1rem;
+        }
+    </style>
+</head>
+<body class="d-flex flex-column min-vh-100">
+    <header class="header-bg text-white shadow-sm">
+        <div class="container py-3">
+            <h1 class="h4 mb-0">Sistema de Registro de Compras</h1>
+        </div>
+        <!-- Tabs -->
+        <nav class="nav nav-tabs border-bottom-0" id="myTab" role="tablist">
+            <a class="nav-link active" id="registro-tab" data-bs-toggle="tab" data-bs-target="#tab-registro-compras" type="button" role="tab" aria-controls="tab-registro-compras" aria-selected="true">Registro de Compras</a>
+            <a class="nav-link" id="dashboard-tab" data-bs-toggle="tab" data-bs-target="#tab-dashboard-stats" type="button" role="tab" aria-controls="tab-dashboard-stats" aria-selected="false">Dashboard de Estadísticas</a>
+        </nav>
+    </header>
+    
+    <main class="flex-grow-1 container py-4">
+        <div class="tab-content" id="myTabContent">
+            <!-- Contenido de la pestaña de Registro de Compras -->
+            <div class="tab-pane fade show active" id="tab-registro-compras" role="tabpanel" aria-labelledby="registro-tab">
+                <div class="row g-4">
+                    <!-- Sección de formulario y tabla -->
+                    <div class="col-md-6">
+                        <div class="card shadow-sm mb-4">
+                            <div class="card-header card-title-bg text-white p-3 rounded-top">
+                                <h2 class="h5 mb-0">Registrar Compra</h2>
+                            </div>
+                            <div class="card-body p-4">
+                                <div class="mb-3">
+                                    <label for="codigo" class="form-label">Código</label>
+                                    <input type="text" id="codigo" class="form-control rounded-lg shadow-sm">
+                                    <div id="codigo-error" class="error-text"></div>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="monto" class="form-label">Monto</label>
+                                    <input type="number" id="monto" class="form-control rounded-lg shadow-sm">
+                                    <div id="monto-error" class="error-text"></div>
+                                </div>
+
+                                <div class="autocomplete-container mb-3">
+                                    <label for="cliente" class="form-label">Cliente (Opcional)</label>
+                                    <input type="text" id="cliente" class="form-control rounded-lg shadow-sm">
+                                    <div id="cliente-error" class="error-text"></div>
+                                    <div id="autocomplete-list" class="autocomplete-list"></div>
+                                </div>
+                                
+                                <div class="d-flex flex-column gap-3 mt-4">
+                                    <div class="d-flex flex-wrap gap-2">
+                                        <button id="agregar" class="btn btn-primary d-flex align-items-center justify-content-center shadow-sm rounded-lg">
+                                            <i class="material-icons me-2">add</i> Agregar Compra
+                                        </button>
+                                    </div>
+
+                                    <div class="d-flex flex-wrap gap-2">
+                                        <button id="agrupar" class="btn btn-info d-flex align-items-center justify-content-center shadow-sm rounded-lg">
+                                            <i class="material-icons me-2">group_work</i> Agrupar por Cliente
+                                        </button>
+                                        <button id="generarReporteBtn" class="btn btn-success d-flex align-items-center justify-content-center shadow-sm rounded-lg">
+                                            <i class="material-icons me-2">description</i> Generar Reporte
+                                        </button>
+                                    </div>
+
+                                    <div class="d-flex flex-wrap gap-2">
+                                        <button id="guardarDatos" class="btn btn-secondary d-flex align-items-center justify-content-center shadow-sm rounded-lg">
+                                            <i class="material-icons me-2">save</i> Guardar Datos
+                                        </button>
+                                        <button id="cargarDatos" class="btn btn-secondary d-flex align-items-center justify-content-center shadow-sm rounded-lg">
+                                            <i class="material-icons me-2">folder_open</i> Cargar Datos
+                                        </button>
+                                        <button id="exportarDatos" class="btn btn-secondary d-flex align-items-center justify-content-center shadow-sm rounded-lg">
+                                            <i class="material-icons me-2">download</i> Exportar Datos
+                                        </button>
+                                        <label for="importarArchivo" class="btn btn-secondary d-flex align-items-center justify-content-center shadow-sm rounded-lg mb-0">
+                                            <i class="material-icons me-2">upload</i> Importar Datos
+                                            <input type="file" id="importarArchivo" accept=".json" class="d-none">
+                                        </label>
+                                        <button id="limpiar" class="btn btn-danger d-flex align-items-center justify-content-center shadow-sm rounded-lg">
+                                            <i class="material-icons me-2">delete_sweep</i> Limpiar Todo
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="card shadow-sm mb-4">
+                            <div class="card-header card-title-bg text-white p-3 rounded-top">
+                                <h2 class="h5 mb-0">Compras Registradas</h2>
+                            </div>
+                            <div class="card-body p-4 overflow-auto">
+                                <table id="tabla-compras" class="table table-striped table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th scope="col">Código</th>
+                                            <th scope="col">Cliente</th>
+                                            <th scope="col">Monto</th>
+                                            <th scope="col">Acciones</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <!-- Table rows will be inserted here by JavaScript -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Sección de resultados (Agrupados) -->
+                    <div class="col-md-6">
+                        <div class="card shadow-sm mb-4">
+                            <div class="card-header card-title-bg text-white p-3 rounded-top">
+                                <h2 class="h5 mb-0">Resultados Agrupados</h2>
+                            </div>
+                            <div class="card-body p-4">
+                                <div id="clientes-agrupados" class="accordion" id="accordionClientes">
+                                    <p class="text-center text-muted">No hay datos para mostrar</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Contenido de la pestaña de Dashboard de Estadísticas -->
+            <div class="tab-pane fade" id="tab-dashboard-stats" role="tabpanel" aria-labelledby="dashboard-tab">
+                <div class="row g-4">
+                    <div class="col-12">
+                        <div class="card shadow-sm">
+                            <div class="card-header card-title-bg text-white p-3 rounded-top">
+                                <h2 class="h5 mb-0">Estadísticas de Listados Guardados</h2>
+                            </div>
+                            <div class="card-body p-4">
+                                <div id="saved-list-stats" class="d-flex flex-column gap-2">
+                                    <p class="text-center text-muted">Cargando estadísticas...</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Toast Container for notifications -->
+    <div class="toast-container position-fixed bottom-0 end-0 p-3">
+        <div id="liveToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
+            <div class="toast-header">
+                <strong class="me-auto">Notificación</strong>
+                <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+            </div>
+            <div class="toast-body" id="toast-message">
+                <!-- Message will be injected here -->
+            </div>
+        </div>
+    </div>
+    
+    <!-- Modales de Bootstrap -->
+
+    <!-- Modal de confirmación para limpiar todo -->
+    <div class="modal fade" id="confirmClearAllDialog" tabindex="-1" aria-labelledby="confirmClearAllDialogLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="confirmClearAllDialogLabel">Confirmar acción</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    ¿Está seguro que desea eliminar **todos** los datos de compras actuales? Esta acción no se puede deshacer.
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-danger" id="confirmClearAllBtn">Aceptar</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de confirmación para eliminar una sola compra -->
+    <div class="modal fade" id="confirmDeletePurchaseDialog" tabindex="-1" aria-labelledby="confirmDeletePurchaseDialogLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="confirmDeletePurchaseDialogLabel">Confirmar Eliminación</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    ¿Está seguro que desea eliminar esta compra?
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-danger" id="confirmDeletePurchaseBtn">Eliminar</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para mostrar el reporte -->
+    <div class="modal fade" id="reportDialog" tabindex="-1" aria-labelledby="reportDialogLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="reportDialogLabel">Reporte de Compras</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <pre id="report-content" class="dialog-content"></pre>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-success d-flex align-items-center" id="copyReportBtn">
+                        <i class="material-icons me-2">content_copy</i> Copiar Reporte
+                    </button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para cargar datos guardados -->
+    <div class="modal fade" id="loadDataDialog" tabindex="-1" aria-labelledby="loadDataDialogLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="loadDataDialogLabel">Cargar Datos Guardados</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <ul id="saved-data-list" class="list-group">
+                        <!-- Los elementos guardados se insertarán aquí -->
+                    </ul>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap Bundle with Popper -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" xintegrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+
+    <script>
+        // Datos de la cuenta para transferencia
+        const DATOS_CUENTA = "Banco XYZ, Cuenta Corriente 123-456-789, Titular: Empresa ABC";
+        // Clave para almacenar la lista de metadatos de las sesiones guardadas en localStorage
+        const SAVES_METADATA_KEY = 'comprasApp_saves_metadata';
+        
+        // Array para almacenar las compras actuales
+        let compras = [];
+        // Variable para almacenar el índice de la compra que se está editando
+        let editandoIndex = -1; 
+        // Variable para almacenar el índice de la compra a eliminar
+        let deleteConfirmIndex = -1;
+        
+        // Elementos del DOM
+        const codigoInput = document.getElementById('codigo');
+        const clienteInput = document.getElementById('cliente');
+        const montoInput = document.getElementById('monto');
+        const agregarBtn = document.getElementById('agregar');
+        const agruparBtn = document.getElementById('agrupar');
+        const limpiarBtn = document.getElementById('limpiar');
+        const tablaCompras = document.getElementById('tabla-compras').getElementsByTagName('tbody')[0];
+        const clientesAgrupados = document.getElementById('clientes-agrupados');
+        const autocompleteList = document.getElementById('autocomplete-list');
+        
+        // Modal instances
+        const confirmClearAllModal = new bootstrap.Modal(document.getElementById('confirmClearAllDialog'));
+        const confirmDeletePurchaseModal = new bootstrap.Modal(document.getElementById('confirmDeletePurchaseDialog'));
+        const reportModal = new bootstrap.Modal(document.getElementById('reportDialog'));
+        const loadDataModal = new bootstrap.Modal(document.getElementById('loadDataDialog'));
+
+        // Dialog elements (buttons inside modals)
+        const confirmClearAllBtn = document.getElementById('confirmClearAllBtn');
+        const confirmDeletePurchaseBtn = document.getElementById('confirmDeletePurchaseBtn');
+        const copyReportBtn = document.getElementById('copyReportBtn');
+        const savedDataList = document.getElementById('saved-data-list');
+
+        // Buttons
+        const guardarDatosBtn = document.getElementById('guardarDatos');
+        const cargarDatosBtn = document.getElementById('cargarDatos');
+        const exportarDatosBtn = document.getElementById('exportarDatos');
+        const importarArchivoInput = document.getElementById('importarArchivo');
+        const generarReporteBtn = document.getElementById('generarReporteBtn');
+
+        // Tab elements
+        const registroTab = document.getElementById('registro-tab');
+        const dashboardTab = document.getElementById('dashboard-tab');
+        const savedListStatsDiv = document.getElementById('saved-list-stats');
+        
+        // Función para formatear montos en formato de moneda chilena
+        function formatoMonedaChilena(monto) {
+            return '$ ' + monto.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+        }
+        
+        // Función para mostrar notificación (Toast de Bootstrap)
+        function mostrarNotificacion(mensaje, type = 'info') {
+            const toastElement = document.getElementById('liveToast');
+            const toastBody = document.getElementById('toast-message');
+            toastBody.textContent = mensaje;
+
+            // Optional: Add classes for different types of notifications (e.g., success, danger)
+            toastElement.classList.remove('text-bg-success', 'text-bg-danger', 'text-bg-info');
+            if (type === 'success') {
+                toastElement.classList.add('text-bg-success');
+            } else if (type === 'danger') {
+                toastElement.classList.add('text-bg-danger');
+            } else {
+                toastElement.classList.add('text-bg-info');
+            }
+
+            const toast = new bootstrap.Toast(toastElement);
+            toast.show();
+        }
+        
+        // Función para validar el formulario
+        function validarFormulario() {
+            let esValido = true;
+            
+            // Validar código
+            if (!codigoInput.value.trim()) {
+                codigoInput.classList.add('is-invalid');
+                document.getElementById('codigo-error').textContent = 'El código es obligatorio';
+                esValido = false;
+            } else {
+                codigoInput.classList.remove('is-invalid');
+                document.getElementById('codigo-error').textContent = '';
+            }
+            
+            // Validar monto
+            if (!montoInput.value || isNaN(montoInput.value) || parseFloat(montoInput.value) <= 0) {
+                montoInput.classList.add('is-invalid');
+                document.getElementById('monto-error').textContent = 'Ingrese un monto válido mayor a cero';
+                esValido = false;
+            } else {
+                montoInput.classList.remove('is-invalid');
+                document.getElementById('monto-error').textContent = '';
+            }
+
+            // Cliente es opcional, no necesita validación de "obligatorio"
+            clienteInput.classList.remove('is-invalid');
+            document.getElementById('cliente-error').textContent = '';
+            
+            return esValido;
+        }
+
+        // Event listeners para validación en tiempo real
+        codigoInput.addEventListener('input', validarFormulario);
+        montoInput.addEventListener('input', validarFormulario);
+
+        // Función para eliminar una compra
+        function eliminarCompra(index) {
+            compras.splice(index, 1);
+            actualizarTablaCompras();
+            mostrarNotificacion('Compra eliminada');
+        }
+
+        // Función para cargar los datos de una compra en el formulario para edición
+        function editarCompra(index) {
+            const compra = compras[index];
+            codigoInput.value = compra.codigo;
+            clienteInput.value = compra.cliente;
+            montoInput.value = compra.monto;
+
+            // Remove invalid states
+            codigoInput.classList.remove('is-invalid');
+            clienteInput.classList.remove('is-invalid');
+            montoInput.classList.remove('is-invalid');
+
+            // Cambiar el texto del botón de "Agregar Compra" a "Actualizar Compra"
+            agregarBtn.innerHTML = '<i class="material-icons me-2">update</i> Actualizar Compra';
+            agregarBtn.classList.remove('btn-primary'); // Quitar color original
+            agregarBtn.classList.add('btn-info'); // Añadir color de acento para indicar edición
+            editandoIndex = index; // Guardar el índice del elemento que se está editando
+
+            mostrarNotificacion(`Editando compra con código: ${compra.codigo}`);
+        }
+        
+        // Función para agregar una compra
+        function agregarCompra() {
+            if (!validarFormulario()) return;
+            
+            const nuevaCompra = {
+                codigo: codigoInput.value.trim(),
+                cliente: clienteInput.value.trim(), // Cliente ahora es opcional
+                monto: Math.round(parseFloat(montoInput.value)) // Redondear a entero
+            };
+            
+            compras.unshift(nuevaCompra); // Añadir al principio del array para que sea el primero
+            actualizarTablaCompras();
+            limpiarFormulario();
+            mostrarNotificacion('Compra agregada correctamente', 'success');
+        }
+
+        // Función para actualizar una compra existente
+        function actualizarCompra() {
+            if (!validarFormulario()) return;
+
+            const compraActualizada = {
+                codigo: codigoInput.value.trim(),
+                cliente: clienteInput.value.trim(), // Cliente ahora es opcional
+                monto: Math.round(parseFloat(montoInput.value))
+            };
+
+            compras[editandoIndex] = compraActualizada; // Sobrescribir la compra existente
+            actualizarTablaCompras();
+            limpiarFormulario();
+            editandoIndex = -1; // Resetear el índice de edición
+            agregarBtn.innerHTML = '<i class="material-icons me-2">add</i> Agregar Compra'; // Restaurar texto del botón
+            agregarBtn.classList.remove('btn-info'); // Quitar color de acento si se añadió
+            agregarBtn.classList.add('btn-primary'); // Restaurar color original
+            mostrarNotificacion('Compra actualizada correctamente', 'success');
+        }
+        
+        // Función para actualizar la tabla de compras
+        function actualizarTablaCompras() {
+            tablaCompras.innerHTML = '';
+            
+            if (compras.length === 0) {
+                const fila = tablaCompras.insertRow();
+                const celda = fila.insertCell(0);
+                celda.colSpan = 4;
+                celda.textContent = 'No hay compras registradas';
+                celda.className = 'text-center text-muted py-3';
+                return;
+            }
+            
+            compras.forEach((compra, index) => {
+                const fila = tablaCompras.insertRow();
+                
+                const celdaCodigo = fila.insertCell(0);
+                celdaCodigo.textContent = compra.codigo;
+                
+                const celdaCliente = fila.insertCell(1);
+                celdaCliente.textContent = compra.cliente || 'N/A'; // Mostrar N/A si el cliente es opcional y no se ingresó
+                
+                const celdaMonto = fila.insertCell(2);
+                celdaMonto.textContent = formatoMonedaChilena(compra.monto); // Formato moneda chilena
+                
+                const celdaAcciones = fila.insertCell(3);
+                
+                // Botón de eliminar
+                const eliminarBtn = document.createElement('button');
+                eliminarBtn.className = 'btn btn-sm btn-danger me-1';
+                eliminarBtn.innerHTML = '<i class="material-icons">delete</i>';
+                eliminarBtn.onclick = () => confirmarEliminarCompra(index); // Usar función de confirmación
+                celdaAcciones.appendChild(eliminarBtn);
+
+                // Botón de editar
+                const editarBtn = document.createElement('button');
+                editarBtn.className = 'btn btn-sm btn-primary';
+                editarBtn.innerHTML = '<i class="material-icons">edit</i>';
+                editarBtn.onclick = () => editarCompra(index);
+                celdaAcciones.appendChild(editarBtn);
+            });
+        }
+        
+        // Función para confirmar la eliminación de una sola compra
+        function confirmarEliminarCompra(index) {
+            deleteConfirmIndex = index; // Guardar el índice de la compra a eliminar
+            confirmDeletePurchaseModal.show();
+        }
+
+        // Event listener para el botón de aceptar en el modal de eliminación individual
+        confirmDeletePurchaseBtn.addEventListener('click', () => {
+            if (deleteConfirmIndex !== -1) {
+                compras.splice(deleteConfirmIndex, 1);
+                actualizarTablaCompras();
+                mostrarNotificacion('Compra eliminada correctamente', 'success');
+                deleteConfirmIndex = -1; // Resetear el índice
+            }
+            confirmDeletePurchaseModal.hide();
+        });
+
+        // Función para limpiar el formulario
+        function limpiarFormulario() {
+            codigoInput.value = '';
+            clienteInput.value = '';
+            montoInput.value = '';
+            codigoInput.classList.remove('is-invalid');
+            clienteInput.classList.remove('is-invalid');
+            montoInput.classList.remove('is-invalid');
+            document.getElementById('codigo-error').textContent = '';
+            document.getElementById('cliente-error').textContent = '';
+            document.getElementById('monto-error').textContent = '';
+            
+            // Limpiar lista de autocompletado
+            autocompleteList.innerHTML = '';
+            autocompleteList.style.display = 'none';
+
+            // Si se estaba editando, restaurar el botón a "Agregar Compra"
+            if (editandoIndex !== -1) {
+                agregarBtn.innerHTML = '<i class="material-icons me-2">add</i> Agregar Compra';
+                agregarBtn.classList.remove('btn-info');
+                agregarBtn.classList.add('btn-primary');
+                editandoIndex = -1;
+            }
+        }
+        
+        // Función para obtener clientes únicos
+        function obtenerClientesUnicos() {
+            const clientesUnicos = new Set();
+            compras.forEach(compra => {
+                // Solo añadir clientes si no están vacíos
+                if (compra.cliente.trim() !== '') {
+                    clientesUnicos.add(compra.cliente);
+                }
+            });
+            return Array.from(clientesUnicos);
+        }
+        
+        // Función para mostrar sugerencias de autocompletado
+        function mostrarSugerencias(input) {
+            const valor = input.value.toLowerCase();
+            autocompleteList.innerHTML = '';
+            
+            if (!valor) {
+                autocompleteList.style.display = 'none';
+                return;
+            }
+            
+            const clientes = obtenerClientesUnicos();
+            let hayCoincidencias = false;
+            
+            clientes.forEach(cliente => {
+                if (cliente.toLowerCase().includes(valor)) {
+                    const div = document.createElement('div');
+                    div.className = 'p-2 cursor-pointer hover:bg-light';
+                    // Resaltar la parte coincidente
+                    const regex = new RegExp(valor, 'gi');
+                    const clienteResaltado = cliente.replace(regex, match => `<strong class="fw-semibold">${match}</strong>`);
+                    div.innerHTML = clienteResaltado;
+                    div.addEventListener('click', function() {
+                        clienteInput.value = cliente;
+                        autocompleteList.style.display = 'none';
+                        clienteInput.focus();
+                    });
+                    autocompleteList.appendChild(div);
+                    hayCoincidencias = true;
+                }
+            });
+            
+            if (hayCoincidencias) {
+                autocompleteList.style.display = 'block';
+            } else {
+                autocompleteList.style.display = 'none';
+            }
+        }
+        
+        // Función para agrupar compras por cliente
+        function agruparPorCliente() {
+            if (compras.length === 0) {
+                mostrarNotificacion('No hay compras registradas para agrupar', 'danger');
+                clientesAgrupados.innerHTML = '<p class="text-center text-muted">No hay datos para mostrar</p>';
+                return;
+            }
+            
+            // Agrupar compras por cliente
+            const clientesMap = new Map();
+            
+            compras.forEach(compra => {
+                // Usar un nombre de cliente predeterminado si el campo cliente es opcional y está vacío
+                const nombreCliente = compra.cliente.trim() === '' ? 'Cliente sin nombre' : compra.cliente;
+
+                if (!clientesMap.has(nombreCliente)) {
+                    clientesMap.set(nombreCliente, {
+                        compras: [],
+                        total: 0
+                    });
+                }
+                
+                const clienteData = clientesMap.get(nombreCliente);
+                clienteData.compras.push(compra);
+                clienteData.total += compra.monto;
+            });
+            
+            // Mostrar resultados agrupados usando acordeón
+            mostrarClientesAgrupados(clientesMap);
+            mostrarNotificacion('Compras agrupadas por cliente', 'info');
+        }
+        
+        // Función para generar el texto del mensaje para el cliente
+        function generarTextoCliente(cliente, data) {
+            let texto = `Estimado ${cliente}\n\n`;
+            texto += `Este es el detalle de sus compras, por favor transferir a la siguiente cuenta:\n`;
+            texto += `DATOS DE LA CUENTA: ${DATOS_CUENTA}\n\n`;
+            texto += `DETALLE DE COMPRAS:\n`;
+            
+            data.compras.forEach(compra => {
+                texto += `- Código: ${compra.codigo}, Monto: ${formatoMonedaChilena(compra.monto)}\n`;
+            });
+            
+            texto += `\nTOTAL: ${formatoMonedaChilena(data.total)}`;
+            
+            return texto;
+        }
+        
+        // Función para copiar texto al portapapeles
+        function copiarAlPortapapeles(texto, boton) {
+            // Crear un elemento textarea temporal
+            const textarea = document.createElement('textarea');
+            textarea.value = texto;
+            textarea.setAttribute('readonly', '');
+            textarea.style.position = 'absolute';
+            textarea.style.left = '-9999px';
+            document.body.appendChild(textarea);
+            
+            // Seleccionar el texto y copiarlo
+            textarea.select();
+            let exitoso = false;
+            
+            try {
+                exitoso = document.execCommand('copy');
+            } catch (err) {
+                exitoso = false;
+            }
+            
+            // Eliminar el textarea temporal
+            document.body.removeChild(textarea);
+            
+            if (exitoso) {
+                // Cambiar el estilo del botón para indicar éxito
+                boton.classList.add('copy-success');
+                boton.innerHTML = '<i class="material-icons me-2">check</i> Copiado';
+                
+                // Restaurar el botón después de 2 segundos
+                setTimeout(() => {
+                    boton.classList.remove('copy-success');
+                    boton.innerHTML = '<i class="material-icons me-2">content_copy</i> Copiar';
+                }, 2000);
+                
+                mostrarNotificacion('Texto copiado al portapapeles', 'success');
+            } else {
+                mostrarNotificacion('Error al copiar el texto', 'danger');
+            }
+        }
+        
+        // Función para mostrar clientes agrupados con Bootstrap Accordion
+        function mostrarClientesAgrupados(clientesMap) {
+            clientesAgrupados.innerHTML = '';
+            
+            if (clientesMap.size === 0) {
+                clientesAgrupados.innerHTML = '<p class="text-center text-muted">No hay datos para mostrar</p>';
+                return;
+            }
+            
+            let accordionIdCounter = 0; // Para IDs únicos del acordeón
+
+            clientesMap.forEach((data, cliente) => {
+                const accordionItemId = `accordionItem${accordionIdCounter++}`;
+                const collapseTargetId = `collapse${accordionItemId}`;
+
+                const accordionItem = document.createElement('div');
+                accordionItem.className = 'accordion-item';
+                accordionItem.innerHTML = `
+                    <h2 class="accordion-header" id="heading${accordionItemId}">
+                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#${collapseTargetId}" aria-expanded="false" aria-controls="${collapseTargetId}">
+                            <span class="fw-semibold text-dark">${cliente}</span>
+                            <span class="ms-auto fw-semibold text-secondary">Total: ${formatoMonedaChilena(data.total)}</span>
+                        </button>
+                    </h2>
+                    <div id="${collapseTargetId}" class="accordion-collapse collapse" aria-labelledby="heading${accordionItemId}" data-bs-parent="#accordionClientes">
+                        <div class="accordion-body">
+                            <!-- Contenido de los detalles del cliente -->
+                            <div class="mb-3">
+                                <p class="h5 fw-semibold text-dark mb-2">Estimado <strong>${cliente}</strong></p>
+                                <p class="text-secondary mb-3">Este es el detalle de sus compras, por favor transferir a la siguiente cuenta:</p>
+                                
+                                <div class="d-flex gap-2 mb-3">
+                                    <button class="editar-btn btn btn-primary d-flex align-items-center">
+                                        <i class="material-icons me-2">edit</i> Editar Texto
+                                    </button>
+                                    <button class="copiar-btn btn btn-success d-flex align-items-center">
+                                        <i class="material-icons me-2">content_copy</i> Copiar
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <!-- Área de edición (inicialmente oculta) -->
+                            <div class="editor-area d-none">
+                                <textarea class="text-editor form-control"></textarea>
+                                <div class="d-flex gap-2 mt-2">
+                                    <button class="guardar-btn btn btn-primary d-flex align-items-center">
+                                        <i class="material-icons me-2">save</i> Guardar
+                                    </button>
+                                    <button class="cancelar-btn btn btn-secondary d-flex align-items-center">
+                                        <i class="material-icons me-2">cancel</i> Cancelar
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <!-- Información de la cuenta -->
+                            <div class="bg-info bg-opacity-10 p-2 rounded my-2 text-dark account-info-area">
+                                <p class="fw-bold">DATOS DE LA CUENTA:</p><p>${DATOS_CUENTA}</p>
+                            </div>
+                            
+                            <!-- Tabla de detalles -->
+                            <table class="table table-bordered table-sm mt-3 shadow-sm rounded overflow-hidden details-table">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th scope="col" class="px-3 py-2 text-start text-uppercase small text-muted">Código</th>
+                                        <th scope="col" class="px-3 py-2 text-start text-uppercase small text-muted">Monto</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="bg-white">
+                                    ${data.compras.map(compra => `
+                                        <tr>
+                                            <td class="px-3 py-2 text-nowrap">${compra.codigo}</td>
+                                            <td class="px-3 py-2 text-nowrap">${formatoMonedaChilena(compra.monto)}</td>
+                                        </tr>
+                                    `).join('')}
+                                    <tr class="fw-bold bg-light">
+                                        <td class="px-3 py-2 text-nowrap">TOTAL</td>
+                                        <td class="px-3 py-2 text-nowrap">${formatoMonedaChilena(data.total)}</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                `;
+                clientesAgrupados.appendChild(accordionItem);
+                
+                // Get references to elements within the newly created accordion item
+                const editorArea = accordionItem.querySelector('.editor-area');
+                const textEditor = accordionItem.querySelector('.text-editor');
+                const mensajeDiv = accordionItem.querySelector('.mb-3'); // Contains editar-btn and copiar-btn
+                const cuentaDiv = accordionItem.querySelector('.account-info-area');
+                const tablaDetalles = accordionItem.querySelector('.details-table');
+
+                const editarBtn = accordionItem.querySelector('.editar-btn');
+                const copiarBtn = accordionItem.querySelector('.copiar-btn');
+                const guardarBtn = accordionItem.querySelector('.guardar-btn');
+                const cancelarBtn = accordionItem.querySelector('.cancelar-btn');
+
+                const textoInicial = generarTextoCliente(cliente, data);
+                textEditor.value = textoInicial;
+
+                editarBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    mensajeDiv.classList.add('d-none');
+                    cuentaDiv.classList.add('d-none');
+                    tablaDetalles.classList.add('d-none');
+                    editorArea.classList.remove('d-none');
+                });
+                
+                copiarBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    copiarAlPortapapeles(textEditor.value, copiarBtn);
+                });
+                
+                guardarBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    editorArea.classList.add('d-none');
+                    mensajeDiv.classList.remove('d-none');
+                    cuentaDiv.classList.remove('d-none');
+                    tablaDetalles.classList.remove('d-none');
+                    mostrarNotificacion('Texto guardado', 'info');
+                });
+                
+                cancelarBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    editorArea.classList.add('d-none');
+                    mensajeDiv.classList.remove('d-none');
+                    cuentaDiv.classList.remove('d-none');
+                    tablaDetalles.classList.remove('d-none');
+                    textEditor.value = textoInicial;
+                });
+            });
+        }
+        
+        // Función para confirmar antes de limpiar todo
+        function confirmarLimpiarTodo() {
+            confirmClearAllModal.show();
+        }
+        
+        // Función para limpiar todo
+        function limpiarTodo() {
+            compras = [];
+            actualizarTablaCompras();
+            clientesAgrupados.innerHTML = '<p class="text-center text-muted">No hay datos para mostrar</p>';
+            limpiarFormulario();
+            mostrarNotificacion('Todos los datos han sido eliminados', 'success');
+            confirmClearAllModal.hide();
+        }
+
+        // Función para guardar datos en localStorage
+        async function guardarDatosLocal() {
+            const saveName = prompt("Introduce un nombre para esta sesión de compras (dejar en blanco para usar la fecha/hora):");
+            const timestamp = new Date().toLocaleString();
+            const key = saveName && saveName.trim() !== '' ? `comprasApp_save_${saveName.trim()}` : `comprasApp_save_${Date.now()}`;
+            const display_name = saveName && saveName.trim() !== '' ? saveName.trim() : timestamp;
+
+            try {
+                localStorage.setItem(key, JSON.stringify(compras));
+                
+                // Calcular estadísticas para guardar en metadatos
+                const itemCount = compras.length;
+                const totalAmount = compras.reduce((sum, compra) => sum + compra.monto, 0);
+
+                // Actualizar la lista de metadatos de guardados
+                let savesMetadata = JSON.parse(localStorage.getItem(SAVES_METADATA_KEY) || '[]');
+                // Eliminar duplicados si el nombre ya existe
+                savesMetadata = savesMetadata.filter(item => item.key !== key);
+                savesMetadata.push({ 
+                    key: key, 
+                    name: display_name, 
+                    timestamp: new Date().toISOString(),
+                    itemCount: itemCount,
+                    totalAmount: totalAmount
+                });
+                localStorage.setItem(SAVES_METADATA_KEY, JSON.stringify(savesMetadata));
+
+                mostrarNotificacion(`Datos guardados como: "${display_name}"`, 'success');
+                displaySavedListStats(); // Actualizar las estadísticas mostradas
+            } catch (e) {
+                mostrarNotificacion('Error al guardar datos localmente: ' + e.message, 'danger');
+            }
+        }
+
+        // Función para cargar datos desde localStorage
+        function cargarDatosLocal(keyToLoad = null) {
+            try {
+                if (keyToLoad) {
+                    const data = localStorage.getItem(keyToLoad);
+                    if (data) {
+                        compras = JSON.parse(data);
+                        actualizarTablaCompras();
+                        mostrarNotificacion(`Datos cargados exitosamente`, 'success');
+                        limpiarFormulario(); // Limpiar formulario después de cargar
+                        loadDataModal.hide();
+                    } else {
+                        mostrarNotificacion('No se encontraron datos para la clave seleccionada.', 'danger');
+                    }
+                } else {
+                    // Si no se especifica una clave, mostrar el diálogo de selección
+                    mostrarDialogoCargarDatos();
+                }
+            } catch (e) {
+                mostrarNotificacion('Error al cargar datos localmente: ' + e.message, 'danger');
+            }
+        }
+
+        // Función para eliminar un guardado específico
+        function eliminarGuardado(key, displayName) {
+            try {
+                localStorage.removeItem(key);
+                let savesMetadata = JSON.parse(localStorage.getItem(SAVES_METADATA_KEY) || '[]');
+                savesMetadata = savesMetadata.filter(item => item.key !== key);
+                localStorage.setItem(SAVES_METADATA_KEY, JSON.stringify(savesMetadata));
+                mostrarNotificacion(`Sesión "${displayName}" eliminada.`, 'success');
+                mostrarDialogoCargarDatos(); // Actualizar la lista en el diálogo
+                displaySavedListStats(); // Actualizar las estadísticas mostradas
+            } catch (e) {
+                mostrarNotificacion('Error al eliminar el guardado: ' + e.message, 'danger');
+            }
+        }
+
+        // Función para mostrar el diálogo de carga de datos
+        function mostrarDialogoCargarDatos() {
+            savedDataList.innerHTML = ''; // Limpiar lista anterior
+            const savesMetadata = JSON.SE(localStorage.getItem(SAVES_METADATA_KEY) || '[]');
+
+            if (savesMetadata.length === 0) {
+                const li = document.createElement('li');
+                li.className = 'list-group-item text-center text-muted py-3';
+                li.textContent = 'No hay sesiones guardadas.';
+                savedDataList.appendChild(li);
+            } else {
+                // Ordenar por fecha de guardado (más reciente primero)
+                savesMetadata.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+
+                savesMetadata.forEach(item => {
+                    const li = document.createElement('li');
+                    li.className = 'list-group-item d-flex justify-content-between align-items-center';
+                    li.innerHTML = `
+                        <span class="flex-grow-1">
+                            <strong class="d-block text-dark">${item.name}</strong> 
+                            <span class="small text-muted">Guardado: ${new Date(item.timestamp).toLocaleString()}</span>
+                            <br>
+                            <span class="small text-muted">Items: ${item.itemCount}, Total: ${formatoMonedaChilena(item.totalAmount)}</span>
+                        </span>
+                        <div class="d-flex align-items-center gap-2">
+                            <button class="load-item-btn btn btn-sm btn-outline-primary" data-key="${item.key}" title="Cargar">
+                                <i class="material-icons">cloud_download</i>
+                            </button>
+                            <button class="delete-item-btn btn btn-sm btn-outline-danger" data-key="${item.key}" data-name="${item.name}" title="Eliminar">
+                                <i class="material-icons">delete</i>
+                            </button>
+                        </div>
+                    `;
+                    savedDataList.appendChild(li);
+                });
+
+                // Añadir event listeners a los botones de cargar y eliminar
+                savedDataList.querySelectorAll('.load-item-btn').forEach(button => {
+                    button.addEventListener('click', (e) => {
+                        const key = e.currentTarget.getAttribute('data-key');
+                        cargarDatosLocal(key);
+                    });
+                });
+
+                savedDataList.querySelectorAll('.delete-item-btn').forEach(button => {
+                    button.addEventListener('click', (e) => {
+                        const key = e.currentTarget.getAttribute('data-key');
+                        const name = e.currentTarget.getAttribute('data-name');
+                        if (confirm(`¿Estás seguro de que quieres eliminar la sesión "${name}"?`)) {
+                            eliminarGuardado(key, name);
+                        }
+                    });
+                });
+            }
+
+            loadDataModal.show();
+        }
+
+        // Función para mostrar las estadísticas de todos los listados guardados
+        function displaySavedListStats() {
+            savedListStatsDiv.innerHTML = ''; // Limpiar contenido anterior
+            const savesMetadata = JSON.parse(localStorage.getItem(SAVES_METADATA_KEY) || '[]');
+
+            if (savesMetadata.length === 0) {
+                savedListStatsDiv.innerHTML = '<p class="text-center text-muted">No hay listados guardados para mostrar estadísticas.</p>';
+                return;
+            }
+
+            // Ordenar por fecha de guardado (más reciente primero)
+            savesMetadata.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+
+            savesMetadata.forEach(item => {
+                const statsItem = document.createElement('div');
+                statsItem.className = 'stats-item card shadow-sm p-3';
+                statsItem.innerHTML = `
+                    <strong class="h6 text-indigo-700">${item.name}</strong>
+                    <span class="d-block small text-muted">Guardado: ${new Date(item.timestamp).toLocaleString()}</span>
+                    <span class="d-block small text-muted">Items: ${item.itemCount}</span>
+                    <span class="d-block small text-muted">Total: ${formatoMonedaChilena(item.totalAmount)}</span>
+                `;
+                savedListStatsDiv.appendChild(statsItem);
+            });
+        }
+
+        // Función para exportar datos a un archivo JSON
+        function exportarDatos() {
+            if (compras.length === 0) {
+                mostrarNotificacion('No hay datos para exportar.', 'info');
+                return;
+            }
+            const dataStr = JSON.stringify(compras, null, 2); // Pretty print JSON
+            const blob = new Blob([dataStr], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `compras_export_${new Date().toISOString().slice(0,10)}.json`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            mostrarNotificacion('Datos exportados correctamente.', 'success');
+        }
+
+        // Función para importar datos desde un archivo JSON
+        function importarDatos(event) {
+            const file = event.target.files[0];
+            if (!file) {
+                return;
+            }
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                try {
+                    const importedData = JSON.parse(e.target.result);
+                    if (Array.isArray(importedData) && importedData.every(item => item.codigo && item.monto)) {
+                        compras = importedData;
+                        actualizarTablaCompras();
+                        mostrarNotificacion('Datos importados correctamente.', 'success');
+                        limpiarFormulario();
+                    } else {
+                        mostrarNotificacion('El archivo JSON no tiene el formato esperado.', 'danger');
+                    }
+                } catch (error) {
+                    mostrarNotificacion('Error al leer el archivo JSON: ' + error.message, 'danger');
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        // Función para generar el reporte
+        function generarReporte() {
+            if (compras.length === 0) {
+                mostrarNotificacion('No hay compras registradas para generar un reporte', 'danger');
+                return;
+            }
+
+            let reporteTexto = "--- REPORTE DE COMPRAS ---\n\n";
+
+            const comprasConNombre = compras.filter(compra => compra.cliente.trim() !== '');
+            const comprasSinNombre = compras.filter(compra => compra.cliente.trim() === '');
+
+            // Sección de compras con nombre
+            reporteTexto += "--- COMPRAS CON CLIENTE ESPECIFICADO ---\n";
+            if (comprasConNombre.length > 0) {
+                let totalConNombre = 0;
+                comprasConNombre.forEach((compra, index) => {
+                    reporteTexto += `${index + 1}. Código: ${compra.codigo}, Cliente: ${compra.cliente}, Monto: ${formatoMonedaChilena(compra.monto)}\n`;
+                    totalConNombre += compra.monto;
+                });
+                reporteTexto += `\nTOTAL COMPRAS CON NOMBRE: ${formatoMonedaChilena(totalConNombre)}\n`;
+                reporteTexto += `CANTIDAD DE COMPRAS CON NOMBRE: ${comprasConNombre.length}\n`;
+            } else {
+                reporteTexto += "No hay compras registradas con cliente especificado.\n";
+            }
+
+            reporteTexto += "\n--- COMPRAS SIN CLIENTE ESPECIFICADO ---\n";
+            if (comprasSinNombre.length > 0) {
+                let totalSinNombre = 0;
+                comprasSinNombre.forEach((compra, index) => {
+                    reporteTexto += `${index + 1}. Código: ${compra.codigo}, Monto: ${formatoMonedaChilena(compra.monto)}\n`;
+                    totalSinNombre += compra.monto;
+                });
+                reporteTexto += `\nTOTAL COMPRAS SIN NOMBRE: ${formatoMonedaChilena(totalSinNombre)}\n`;
+                reporteTexto += `CANTIDAD DE COMPRAS SIN NOMBRE: ${comprasSinNombre.length}\n`;
+            } else {
+                reporteTexto += "No hay compras registradas sin cliente especificado.\n";
+            }
+
+            reporteTexto += "\n--- RESUMEN GENERAL ---\n";
+            const totalGeneral = compras.reduce((sum, compra) => sum + compra.monto, 0);
+            reporteTexto += `TOTAL GENERAL DE COMPRAS: ${formatoMonedaChilena(totalGeneral)}\n`;
+            reporteTexto += `CANTIDAD TOTAL DE COMPRAS: ${compras.length}\n`;
+            reporteTexto += "\n---------------------------\n";
+
+            document.getElementById('report-content').textContent = reporteTexto; // Mostrar el reporte en el pre
+            reportModal.show();
+        }
+        
+        // Event listeners for buttons
+        agregarBtn.addEventListener('click', () => {
+            if (editandoIndex === -1) {
+                agregarCompra();
+            } else {
+                actualizarCompra();
+            }
+        });
+
+        agruparBtn.addEventListener('click', agruparPorCliente);
+        limpiarBtn.addEventListener('click', confirmarLimpiarTodo);
+        guardarDatosBtn.addEventListener('click', guardarDatosLocal);
+        cargarDatosBtn.addEventListener('click', () => cargarDatosLocal());
+        exportarDatosBtn.addEventListener('click', exportarDatos);
+        importarArchivoInput.addEventListener('change', importarDatos);
+        generarReporteBtn.addEventListener('click', generarReporte);
+
+        // Dialog event listeners
+        confirmClearAllBtn.addEventListener('click', limpiarTodo);
+
+        copyReportBtn.addEventListener('click', function() {
+            copiarAlPortapapeles(document.getElementById('report-content').textContent, this);
+        });
+        
+        // Event listener para el autocompletado
+        clienteInput.addEventListener('input', function() {
+            mostrarSugerencias(this);
+        });
+        
+        // Cerrar la lista de autocompletado si se hace clic fuera de ella
+        document.addEventListener('click', function(e) {
+            if (e.target !== clienteInput && e.target !== autocompleteList) {
+                autocompleteList.style.display = 'none';
+            }
+        });
+        
+        // Navegación con teclado para el autocompletado
+        clienteInput.addEventListener('keydown', function(e) {
+            const items = autocompleteList.getElementsByTagName('div');
+            if (items.length === 0) return;
+            
+            // Encontrar el elemento activo actual
+            let activeIndex = -1;
+            for (let i = 0; i < items.length; i++) {
+                if (items[i].classList.contains('autocomplete-active')) {
+                    activeIndex = i;
+                    break;
+                }
+            }
+            
+            // Tecla flecha abajo
+            if (e.keyCode === 40) {
+                e.preventDefault();
+                activeIndex++;
+                if (activeIndex >= items.length) activeIndex = 0;
+                setActiveItem(items, activeIndex);
+            }
+            // Tecla flecha arriba
+            else if (e.keyCode === 38) {
+                e.preventDefault();
+                activeIndex--;
+                if (activeIndex < 0) activeIndex = items.length - 1;
+                setActiveItem(items, activeIndex);
+            }
+            // Tecla Enter
+            else if (e.keyCode === 13 && activeIndex > -1) {
+                e.preventDefault();
+                items[activeIndex].click();
+            }
+        });
+        
+        // Función para establecer el elemento activo en la lista de autocompletado
+        function setActiveItem(items, index) {
+            // Eliminar clase activa de todos los elementos
+            for (let i = 0; i < items.length; i++) {
+                items[i].classList.remove('autocomplete-active');
+            }
+            // Agregar clase activa al elemento seleccionado
+            if (index > -1 && items.length > 0) {
+                items[index].classList.add('autocomplete-active');
+                // Asegurar que el elemento sea visible en la lista
+                items[index].scrollIntoView({ block: 'nearest' });
+            }
+        }
+        
+        // Tab switching logic (using Bootstrap's built-in tab functionality)
+        document.addEventListener('shown.bs.tab', function (event) {
+            if (event.target.id === 'dashboard-tab') {
+                displaySavedListStats(); // Update stats when dashboard tab is clicked
+            }
+        });
+
+        // Initial load
+        document.addEventListener('DOMContentLoaded', function() {
+            const savesMetadata = JSON.parse(localStorage.getItem(SAVES_METADATA_KEY) || '[]');
+            if (savesMetadata.length > 0) {
+                const lastSave = savesMetadata.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))[0];
+                cargarDatosLocal(lastSave.key);
+            } else {
+                actualizarTablaCompras();
+            }
+            displaySavedListStats(); // Display stats on initial load for the dashboard tab
+        });
+    </script>
+</body>
+</html>
