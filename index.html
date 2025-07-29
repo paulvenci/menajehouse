@@ -16,8 +16,15 @@
         body {
             font-family: 'Inter', sans-serif;
             background-color: #f8f9fa; /* Bootstrap's default light background */
+            height: 100vh; /* Full viewport height */
+            /* Removed overflow: hidden from here, will manage dynamically */
         }
         
+        /* New class for controlling body overflow */
+        body.no-scroll {
+            overflow: hidden;
+        }
+
         .header-bg {
             background-color: #3f51b5; /* Deep indigo for header */
         }
@@ -95,7 +102,7 @@
             z-index: 2000;
         }
 
-        /* Tab specific styles */
+        /* Tab specific styles (retained for tab-pane content, but nav links will be vertical) */
         .nav-tabs .nav-link {
             color: rgba(255, 255, 255, 0.7);
             font-weight: 500;
@@ -153,139 +160,380 @@
         .accordion-body {
             padding: 1rem;
         }
+
+        /* New styles for sidebar */
+        .sidebar {
+            width: 250px;
+            background-color: #3f51b5;
+            color: white;
+            padding: 1rem;
+            box-shadow: 0 0.5rem 1rem rgba(0,0,0,0.15);
+            transition: transform 0.3s ease-in-out;
+            position: fixed; /* Make it fixed for overlay behavior on small screens */
+            top: 0;
+            bottom: 0;
+            left: -250px; /* Initially hidden off-screen */
+            z-index: 1060; /* Ensure it's above main content */
+        }
+
+        /* When body has sidebar-expanded, show the sidebar */
+        body.sidebar-expanded .sidebar {
+            transform: translateX(250px); /* Slide it into view */
+        }
+
+        /* Overlay for when sidebar is open on small screens */
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1059; /* Below sidebar, above content */
+            display: none; /* Hidden by default */
+            transition: opacity 0.3s ease-in-out;
+            opacity: 0;
+        }
+
+        body.sidebar-expanded .overlay {
+            display: block;
+            opacity: 1;
+        }
+
+        /* Sidebar toggle button */
+        #sidebarToggle {
+            display: none; /* Hidden by default, will be shown via media query */
+            position: fixed;
+            top: 1rem;
+            left: 1rem;
+            z-index: 1070; /* Above sidebar and overlay */
+        }
+
+        /* Adjust for small screens (max-width: 767.98px) */
+        @media (max-width: 767.98px) {
+            body {
+                /* Removed overflow: hidden from here */
+            }
+            .main-content {
+                margin-left: 0; /* No margin on small screens */
+            }
+            #sidebarToggle {
+                display: block !important; /* Show toggle button on small screens */
+            }
+        }
+
+        /* For screens larger than or equal to medium (md) breakpoint */
+        @media (min-width: 768px) {
+            body {
+                display: flex; /* Re-enable flex for side-by-side layout */
+                overflow: auto; /* Allow scrolling on body if content overflows */
+            }
+            .sidebar {
+                position: relative; /* Back to relative positioning */
+                left: 0; /* Always visible */
+                transform: translateX(0); /* Ensure no transform */
+                flex-shrink: 0; /* Prevent shrinking */
+            }
+            .main-content {
+                flex-grow: 1; /* Allow main content to take up remaining space */
+                margin-left: 0; /* Remove fixed margin-left */
+            }
+            #sidebarToggle {
+                display: none !important; /* Hide toggle button on large screens */
+            }
+            .overlay {
+                display: none !important; /* Hide overlay on large screens */
+            }
+        }
+
+        /* Floating buttons */
+        .floating-buttons-container {
+            position: fixed;
+            bottom: 1.5rem; /* 24px */
+            right: 1.5rem; /* 24px */
+            display: flex;
+            flex-direction: row; /* Changed to row */
+            gap: 0.75rem; /* 12px */
+            z-index: 1000; /* Ensure they are above other content */
+            align-items: flex-end; /* Align to the bottom when in a row */
+            flex-wrap: wrap; /* Allow wrapping if many buttons */
+            justify-content: flex-end; /* Align buttons to the right */
+        }
+
+        .floating-buttons-container .btn {
+            border-radius: 50px; /* Make them round initially */
+            width: 56px; /* Standard FAB size */
+            height: 56px; /* Standard FAB size */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2); /* Add shadow */
+            transition: all 0.2s ease, width 0.3s ease; /* Add width to transition */
+            padding: 0; /* Remove default padding for initial round state */
+            overflow: hidden; /* Hide overflowing text initially */
+        }
+
+        .floating-buttons-container .btn:hover {
+            box-shadow: 0 6px 12px rgba(0,0,0,0.3);
+            transform: translateY(-2px);
+            width: auto; /* Expand width on hover */
+            padding: 0 1rem; /* Add padding for text */
+            border-radius: 0.375rem; /* Make it more like a pill on hover */
+        }
+
+        .floating-buttons-container .btn .material-icons {
+            font-size: 1.5rem; /* Larger icon for FAB */
+            margin-right: 0; /* Remove margin initially */
+        }
+
+        .floating-buttons-container .btn:hover .material-icons {
+            margin-right: 0.5rem; /* Add margin when text appears */
+        }
+
+        /* Show text on hover for FABs */
+        .floating-buttons-container .btn span {
+            display: none; /* Hide text by default */
+            white-space: nowrap; /* Prevent text from wrapping */
+            transition: opacity 0.3s ease;
+            opacity: 0;
+        }
+
+        .floating-buttons-container .btn:hover span {
+            display: inline-block; /* Show text on hover */
+            opacity: 1;
+        }
+
+        /* Adjust for small screens to stack vertically if needed */
+        @media (max-width: 767.98px) {
+            .floating-buttons-container {
+                flex-direction: column; /* Stack vertically on small screens */
+                align-items: flex-end; /* Align to the right */
+                bottom: 1rem;
+                right: 1rem;
+            }
+            .floating-buttons-container .btn {
+                width: 56px; /* Keep round on small screens unless hovered */
+                padding: 0;
+            }
+            .floating-buttons-container .btn:hover {
+                width: auto; /* Still expand on hover */
+                padding: 0 1rem;
+            }
+        }
     </style>
 </head>
-<body class="d-flex flex-column min-vh-100">
-    <header class="header-bg text-white shadow-sm">
-        <div class="container py-3">
-            <h1 class="h4 mb-0">Sistema de Registro de Compras</h1>
-        </div>
-        <!-- Tabs -->
-        <nav class="nav nav-tabs border-bottom-0" id="myTab" role="tablist">
-            <a class="nav-link active" id="registro-tab" data-bs-toggle="tab" data-bs-target="#tab-registro-compras" type="button" role="tab" aria-controls="tab-registro-compras" aria-selected="true">Registro de Compras</a>
-            <a class="nav-link" id="dashboard-tab" data-bs-toggle="tab" data-bs-target="#tab-dashboard-stats" type="button" role="tab" aria-controls="tab-dashboard-stats" aria-selected="false">Dashboard de Estadísticas</a>
-        </nav>
-    </header>
-    
-    <main class="flex-grow-1 container py-4">
-        <div class="tab-content" id="myTabContent">
-            <!-- Contenido de la pestaña de Registro de Compras -->
-            <div class="tab-pane fade show active" id="tab-registro-compras" role="tabpanel" aria-labelledby="registro-tab">
-                <div class="row g-4">
-                    <!-- Sección de formulario y tabla -->
-                    <div class="col-md-6">
-                        <div class="card shadow-sm mb-4">
-                            <div class="card-header card-title-bg text-white p-3 rounded-top">
-                                <h2 class="h5 mb-0">Registrar Compra</h2>
-                            </div>
-                            <div class="card-body p-4">
-                                <div class="mb-3">
-                                    <label for="codigo" class="form-label">Código</label>
-                                    <input type="text" id="codigo" class="form-control rounded-lg shadow-sm">
-                                    <div id="codigo-error" class="error-text"></div>
-                                </div>
-                                
-                                <div class="mb-3">
-                                    <label for="monto" class="form-label">Monto</label>
-                                    <input type="number" id="monto" class="form-control rounded-lg shadow-sm">
-                                    <div id="monto-error" class="error-text"></div>
-                                </div>
+<body>
+    <!-- Left Sidebar Navigation -->
+    <nav class="sidebar d-flex flex-column align-items-start py-4" id="sidebar">
+        <h1 class="h5 mb-4 text-white text-center w-100">Menú</h1>
+        <ul class="nav nav-pills flex-column w-100">
+            <li class="nav-item">
+                <a class="nav-link active" id="registro-tab-sidebar" data-bs-toggle="tab" data-bs-target="#tab-registro-compras" type="button" role="tab" aria-controls="tab-registro-compras" aria-selected="true">
+                    <i class="material-icons me-2">receipt_long</i> Registro de Compras
+                </a>
+            </li>
+            <!-- Removed Dashboard tab -->
+            <li class="nav-item">
+                <a class="nav-link" id="reportes-tab-sidebar" data-bs-toggle="tab" data-bs-target="#tab-reportes" type="button" role="tab" aria-controls="tab-reportes" aria-selected="false">
+                    <i class="material-icons me-2">assessment</i> Reportes
+                </a>
+            </li>
+        </ul>
+    </nav>
 
-                                <div class="autocomplete-container mb-3">
-                                    <label for="cliente" class="form-label">Cliente (Opcional)</label>
-                                    <input type="text" id="cliente" class="form-control rounded-lg shadow-sm">
-                                    <div id="cliente-error" class="error-text"></div>
-                                    <div id="autocomplete-list" class="autocomplete-list"></div>
+    <!-- Main Content Area -->
+    <main class="main-content">
+        <!-- Toggle button for small screens -->
+        <button id="sidebarToggle" class="btn btn-primary position-fixed top-0 start-0 m-3 rounded-circle shadow" style="z-index: 1060;">
+            <i class="material-icons">menu</i>
+        </button>
+        <div class="container-fluid"> <!-- Use container-fluid for full width -->
+            <h1 class="h4 mb-4 text-dark">Sistema de Registro de Compras</h1> <!-- Main title -->
+            <div class="tab-content" id="myTabContent">
+                <!-- Contenido de la pestaña de Registro de Compras -->
+                <div class="tab-pane fade show active" id="tab-registro-compras" role="tabpanel" aria-labelledby="registro-tab-sidebar">
+                    <div class="row g-4">
+                        <!-- Sección de formulario (izquierda) -->
+                        <div class="col-md-6"> <!-- Changed to col-md-6 for 1x2 layout -->
+                            <div class="card shadow-sm mb-4">
+                                <div class="card-header card-title-bg text-white p-3 rounded-top">
+                                    <h2 class="h5 mb-0">Registrar Compra</h2>
                                 </div>
-                                
-                                <div class="d-flex flex-column gap-3 mt-4">
-                                    <div class="d-flex flex-wrap gap-2">
-                                        <button id="agregar" class="btn btn-primary d-flex align-items-center justify-content-center shadow-sm rounded-lg">
-                                            <i class="material-icons me-2">add</i> Agregar Compra
-                                        </button>
+                                <div class="card-body p-4">
+                                    <div class="mb-3">
+                                        <label for="codigo" class="form-label">Código</label>
+                                        <input type="text" id="codigo" class="form-control rounded-lg shadow-sm">
+                                        <div id="codigo-error" class="error-text"></div>
+                                    </div>
+                                    
+                                    <div class="mb-3">
+                                        <label for="monto" class="form-label">Monto</label>
+                                        <input type="number" id="monto" class="form-control rounded-lg shadow-sm">
+                                        <div id="monto-error" class="error-text"></div>
                                     </div>
 
-                                    <div class="d-flex flex-wrap gap-2">
-                                        <button id="agrupar" class="btn btn-info d-flex align-items-center justify-content-center shadow-sm rounded-lg">
-                                            <i class="material-icons me-2">group_work</i> Agrupar por Cliente
-                                        </button>
-                                        <button id="generarReporteBtn" class="btn btn-success d-flex align-items-center justify-content-center shadow-sm rounded-lg">
-                                            <i class="material-icons me-2">description</i> Generar Reporte
-                                        </button>
+                                    <div class="autocomplete-container mb-3">
+                                        <label for="cliente" class="form-label">Cliente (Opcional)</label>
+                                        <input type="text" id="cliente" class="form-control rounded-lg shadow-sm">
+                                        <div id="cliente-error" class="error-text"></div>
+                                        <div id="autocomplete-list" class="autocomplete-list"></div>
                                     </div>
+                                    
+                                    <div class="d-flex flex-column gap-3 mt-4">
+                                        <div class="d-flex flex-wrap gap-2">
+                                            <button id="agregar" class="btn btn-primary d-flex align-items-center justify-content-center shadow-sm rounded-lg">
+                                                <i class="material-icons me-2">add</i> Agregar Compra
+                                            </button>
+                                        </div>
 
-                                    <div class="d-flex flex-wrap gap-2">
-                                        <button id="guardarDatos" class="btn btn-secondary d-flex align-items-center justify-content-center shadow-sm rounded-lg">
-                                            <i class="material-icons me-2">save</i> Guardar Datos
-                                        </button>
-                                        <button id="cargarDatos" class="btn btn-secondary d-flex align-items-center justify-content-center shadow-sm rounded-lg">
-                                            <i class="material-icons me-2">folder_open</i> Cargar Datos
-                                        </button>
-                                        <button id="exportarDatos" class="btn btn-secondary d-flex align-items-center justify-content-center shadow-sm rounded-lg">
-                                            <i class="material-icons me-2">download</i> Exportar Datos
-                                        </button>
-                                        <label for="importarArchivo" class="btn btn-secondary d-flex align-items-center justify-content-center shadow-sm rounded-lg mb-0">
-                                            <i class="material-icons me-2">upload</i> Importar Datos
-                                            <input type="file" id="importarArchivo" accept=".json" class="d-none">
-                                        </label>
-                                        <button id="limpiar" class="btn btn-danger d-flex align-items-center justify-content-center shadow-sm rounded-lg">
-                                            <i class="material-icons me-2">delete_sweep</i> Limpiar Todo
-                                        </button>
+                                        <!-- Removed Generar Reporte button from here -->
+                                        <!-- <div class="d-flex flex-wrap gap-2">
+                                            <button id="generarReporteBtn" class="btn btn-success d-flex align-items-center justify-content-center shadow-sm rounded-lg">
+                                                <i class="material-icons me-2">description</i> Generar Reporte
+                                            </button>
+                                        </div> -->
+
+                                        <!-- Removed Guardar Datos, Cargar Datos, Exportar Datos, Importar Datos buttons -->
                                     </div>
                                 </div>
                             </div>
                         </div>
                         
-                        <div class="card shadow-sm mb-4">
-                            <div class="card-header card-title-bg text-white p-3 rounded-top">
-                                <h2 class="h5 mb-0">Compras Registradas</h2>
-                            </div>
-                            <div class="card-body p-4 overflow-auto">
-                                <table id="tabla-compras" class="table table-striped table-hover">
-                                    <thead>
-                                        <tr>
-                                            <th scope="col">Código</th>
-                                            <th scope="col">Cliente</th>
-                                            <th scope="col">Monto</th>
-                                            <th scope="col">Acciones</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <!-- Table rows will be inserted here by JavaScript -->
-                                    </tbody>
-                                </table>
+                        <!-- Sección de tabla de compras (derecha) -->
+                        <div class="col-md-6"> <!-- Changed to col-md-6 for 1x2 layout -->
+                            <div class="card shadow-sm mb-4">
+                                <div class="card-header card-title-bg text-white p-3 rounded-top">
+                                    <h2 class="h5 mb-0">Compras Registradas</h2>
+                                </div>
+                                <div class="card-body p-4 overflow-auto">
+                                    <table id="tabla-compras" class="table table-striped table-hover">
+                                        <thead>
+                                            <tr>
+                                                <th scope="col">Código</th>
+                                                <th scope="col">Cliente</th>
+                                                <th scope="col">Monto</th>
+                                                <th scope="col">Acciones</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <!-- Table rows will be inserted here by JavaScript -->
+                                        </tbody>
+                                    </table>
+                                </div>
                             </div>
                         </div>
                     </div>
-                    
-                    <!-- Sección de resultados (Agrupados) -->
-                    <div class="col-md-6">
-                        <div class="card shadow-sm mb-4">
-                            <div class="card-header card-title-bg text-white p-3 rounded-top">
-                                <h2 class="h5 mb-0">Resultados Agrupados</h2>
-                            </div>
-                            <div class="card-body p-4">
-                                <div id="clientes-agrupados" class="accordion" id="accordionClientes">
-                                    <p class="text-center text-muted">No hay datos para mostrar</p>
+
+                    <!-- Sección de resultados (Agrupados) - Ahora ocupa todo el ancho abajo -->
+                    <div class="row g-4">
+                        <div class="col-12">
+                            <div class="card shadow-sm mb-4">
+                                <div class="card-header card-title-bg text-white p-3 rounded-top">
+                                    <h2 class="h5 mb-0">Resultados Agrupados</h2>
+                                </div>
+                                <div class="card-body p-4">
+                                    <div id="clientes-agrupados" class="accordion" id="accordionClientes">
+                                        <p class="text-center text-muted">No hay datos para mostrar</p>
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
-            </div>
 
-            <!-- Contenido de la pestaña de Dashboard de Estadísticas -->
-            <div class="tab-pane fade" id="tab-dashboard-stats" role="tabpanel" aria-labelledby="dashboard-tab">
-                <div class="row g-4">
-                    <div class="col-12">
-                        <div class="card shadow-sm">
-                            <div class="card-header card-title-bg text-white p-3 rounded-top">
-                                <h2 class="h5 mb-0">Estadísticas de Listados Guardados</h2>
-                            </div>
-                            <div class="card-body p-4">
-                                <div id="saved-list-stats" class="d-flex flex-column gap-2">
-                                    <p class="text-center text-muted">Cargando estadísticas...</p>
+                <!-- Removed Dashboard tab content -->
+
+                <!-- Contenido de la pestaña de Reportes -->
+                <div class="tab-pane fade" id="tab-reportes" role="tabpanel" aria-labelledby="reportes-tab-sidebar">
+                    <div class="card shadow-sm mb-4">
+                        <div class="card-header card-title-bg text-white p-3 rounded-top">
+                            <h2 class="h5 mb-0">Reporte de Compras</h2>
+                        </div>
+                        <div class="card-body p-4">
+                            <h3 class="h6 mb-3">Filtros</h3>
+                            <div class="row g-3 mb-4">
+                                <div class="col-md-6">
+                                    <label for="reporteClienteFilter" class="form-label">Cliente</label>
+                                    <select id="reporteClienteFilter" class="form-select rounded-lg shadow-sm">
+                                        <option value="">Seleccionar cliente</option>
+                                        <!-- Opciones de clientes se cargarán dinámicamente -->
+                                    </select>
                                 </div>
+                                <div class="col-md-6">
+                                    <label for="reportePeriodoFilter" class="form-label">Periodo</label>
+                                    <select id="reportePeriodoFilter" class="form-select rounded-lg shadow-sm">
+                                        <option value="">Seleccionar periodo</option>
+                                        <option value="today">Hoy</option>
+                                        <option value="last7days">Últimos 7 días</option>
+                                        <option value="last30days">Últimos 30 días</option>
+                                        <option value="thisMonth">Este mes</option>
+                                        <option value="lastMonth">Mes anterior</option>
+                                        <option value="thisYear">Este año</option>
+                                        <option value="all">Todo el historial</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="d-flex justify-content-end mb-4">
+                                <button id="generarReporteTabBtn" class="btn btn-primary d-flex align-items-center justify-content-center shadow-sm rounded-lg">
+                                    Generar Reporte
+                                </button>
+                            </div>
+
+                            <h3 class="h6 mb-3">Resumen de Compras</h3>
+                            <div class="row g-3 mb-4">
+                                <div class="col-md-4">
+                                    <div class="card text-center p-3 shadow-sm rounded-lg">
+                                        <div class="card-body">
+                                            <h5 class="card-title text-muted">Total de Compras</h5>
+                                            <p class="card-text h4 fw-bold text-primary" id="reporteTotalCompras">0</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="card text-center p-3 shadow-sm rounded-lg">
+                                        <div class="card-body">
+                                            <h5 class="card-title text-muted">Total Gastado</h5>
+                                            <p class="card-text h4 fw-bold text-success" id="reporteTotalGastado">$ 0</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="card text-center p-3 shadow-sm rounded-lg">
+                                        <div class="card-body">
+                                            <h5 class="card-title text-muted">Promedio por Compra</h5>
+                                            <p class="card-text h4 fw-bold text-info" id="reportePromedioCompra">$ 0</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <h3 class="h6 mb-3">Detalle de Compras</h3>
+                            <div class="table-responsive">
+                                <table id="reporteTablaDetalle" class="table table-striped table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th scope="col">Fecha</th>
+                                            <th scope="col">Cliente</th>
+                                            <th scope="col">Código</th>
+                                            <th scope="col">Monto</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <!-- Detalles del reporte se insertarán aquí -->
+                                        <tr>
+                                            <td colspan="4" class="text-center text-muted py-3">No hay datos para mostrar</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <div class="d-flex justify-content-end gap-2 mt-4">
+                                <button id="exportarReporteBtn" class="btn btn-secondary d-flex align-items-center justify-content-center shadow-sm rounded-lg">
+                                    <i class="material-icons me-2">download</i> Exportar
+                                </button>
+                                <button id="imprimirReporteBtn" class="btn btn-secondary d-flex align-items-center justify-content-center shadow-sm rounded-lg">
+                                    <i class="material-icons me-2">print</i> Imprimir
+                                </button>
                             </div>
                         </div>
                     </div>
@@ -293,6 +541,33 @@
             </div>
         </div>
     </main>
+
+    <!-- Overlay for closing sidebar on small screens -->
+    <div class="overlay" id="sidebar-overlay"></div>
+
+    <!-- Floating Buttons Container -->
+    <div class="floating-buttons-container">
+        <button id="saveSalesBtn" class="btn btn-primary shadow-sm">
+            <i class="material-icons">save</i>
+            <span>Guardar Ventas</span>
+        </button>
+        <button id="loadSalesBtn" class="btn btn-secondary shadow-sm">
+            <i class="material-icons">folder_open</i>
+            <span>Cargar Ventas</span>
+        </button>
+        <button id="generarReporteBtn" class="btn btn-success shadow-sm">
+            <i class="material-icons">description</i>
+            <span>Generar Reporte</span>
+        </button>
+        <button id="agrupar" class="btn btn-info shadow-sm">
+            <i class="material-icons">group_work</i>
+            <span>Agrupar</span>
+        </button>
+        <button id="limpiar" class="btn btn-danger shadow-sm">
+            <i class="material-icons">delete_sweep</i>
+            <span>Limpiar</span>
+        </button>
+    </div>
 
     <!-- Toast Container for notifications -->
     <div class="toast-container position-fixed bottom-0 end-0 p-3">
@@ -368,21 +643,54 @@
         </div>
     </div>
 
-    <!-- Modal para cargar datos guardados -->
-    <div class="modal fade" id="loadDataDialog" tabindex="-1" aria-labelledby="loadDataDialogLabel" aria-hidden="true">
+    <!-- Modal para Guardar Ventas -->
+    <div class="modal fade" id="saveSalesModal" tabindex="-1" aria-labelledby="saveSalesModalLabel" aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="loadDataDialogLabel">Cargar Datos Guardados</h5>
+                    <h5 class="modal-title" id="saveSalesModalLabel">Guardar Ventas del Día</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
-                    <ul id="saved-data-list" class="list-group">
-                        <!-- Los elementos guardados se insertarán aquí -->
-                    </ul>
+                    <div class="mb-3">
+                        <label for="saveDateInput" class="form-label">Fecha de Venta</label>
+                        <input type="date" id="saveDateInput" class="form-control">
+                    </div>
+                    <div class="mb-3">
+                        <label for="saveCategorySelect" class="form-label">Categoría de Venta</label>
+                        <select id="saveCategorySelect" class="form-select">
+                            <option value="VentasDiarias">Ventas Diarias</option>
+                            <option value="LiveFacebook">Live Facebook</option>
+                        </select>
+                    </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                    <button type="button" class="btn btn-primary" id="confirmSaveBtn">Guardar</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para Cargar Ventas -->
+    <div class="modal fade" id="loadSalesModal" tabindex="-1" aria-labelledby="loadSalesModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="loadSalesModalLabel">Cargar Ventas Guardadas</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="loadSalesSelect" class="form-label">Seleccionar Venta Guardada</label>
+                        <select id="loadSalesSelect" class="form-select">
+                            <option value="">-- Seleccionar --</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary" id="confirmLoadBtn">Cargar</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
                 </div>
             </div>
         </div>
@@ -392,25 +700,24 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" xintegrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
 
     <script>
-        // Datos de la cuenta para transferencia
-        const DATOS_CUENTA = "Banco XYZ, Cuenta Corriente 123-456-789, Titular: Empresa ABC";
-        // Clave para almacenar la lista de metadatos de las sesiones guardadas en localStorage
-        const SAVES_METADATA_KEY = 'comprasApp_saves_metadata';
-        
-        // Array para almacenar las compras actuales
+        // Array to store current purchases
         let compras = [];
-        // Variable para almacenar el índice de la compra que se está editando
+        // Variable to store the index of the purchase being edited
         let editandoIndex = -1; 
-        // Variable para almacenar el índice de la compra a eliminar
+        // Variable to store the index of the purchase to be deleted
         let deleteConfirmIndex = -1;
         
-        // Elementos del DOM
+        // Local Storage Key for sales metadata
+        const SAVES_METADATA_KEY = 'sales_metadata';
+
+        // DOM elements
         const codigoInput = document.getElementById('codigo');
         const clienteInput = document.getElementById('cliente');
         const montoInput = document.getElementById('monto');
         const agregarBtn = document.getElementById('agregar');
-        const agruparBtn = document.getElementById('agrupar');
-        const limpiarBtn = document.getElementById('limpiar');
+        const agruparBtn = document.getElementById('agrupar'); // Floating button
+        const limpiarBtn = document.getElementById('limpiar'); // Floating button
+        const generarReporteBtn = document.getElementById('generarReporteBtn'); // Floating button
         const tablaCompras = document.getElementById('tabla-compras').getElementsByTagName('tbody')[0];
         const clientesAgrupados = document.getElementById('clientes-agrupados');
         const autocompleteList = document.getElementById('autocomplete-list');
@@ -419,32 +726,49 @@
         const confirmClearAllModal = new bootstrap.Modal(document.getElementById('confirmClearAllDialog'));
         const confirmDeletePurchaseModal = new bootstrap.Modal(document.getElementById('confirmDeletePurchaseDialog'));
         const reportModal = new bootstrap.Modal(document.getElementById('reportDialog'));
-        const loadDataModal = new bootstrap.Modal(document.getElementById('loadDataDialog'));
+        const saveSalesModal = new bootstrap.Modal(document.getElementById('saveSalesModal'));
+        const loadSalesModal = new bootstrap.Modal(document.getElementById('loadSalesModal'));
 
         // Dialog elements (buttons inside modals)
         const confirmClearAllBtn = document.getElementById('confirmClearAllBtn');
         const confirmDeletePurchaseBtn = document.getElementById('confirmDeletePurchaseBtn');
         const copyReportBtn = document.getElementById('copyReportBtn');
-        const savedDataList = document.getElementById('saved-data-list');
 
-        // Buttons
-        const guardarDatosBtn = document.getElementById('guardarDatos');
-        const cargarDatosBtn = document.getElementById('cargarDatos');
-        const exportarDatosBtn = document.getElementById('exportarDatos');
-        const importarArchivoInput = document.getElementById('importarArchivo');
-        const generarReporteBtn = document.getElementById('generarReporteBtn');
+        // Tab elements (now controlled by sidebar)
+        const registroTabSidebar = document.getElementById('registro-tab-sidebar');
+        const reportesTabSidebar = document.getElementById('reportes-tab-sidebar');
 
-        // Tab elements
-        const registroTab = document.getElementById('registro-tab');
-        const dashboardTab = document.getElementById('dashboard-tab');
-        const savedListStatsDiv = document.getElementById('saved-list-stats');
+        // New elements for sidebar toggle
+        const sidebarToggleBtn = document.getElementById('sidebarToggle');
+        const sidebar = document.getElementById('sidebar'); // Get the sidebar element
+        const sidebarOverlay = document.getElementById('sidebar-overlay'); // Get the overlay element
+
+        // Reportes tab elements
+        const reporteClienteFilter = document.getElementById('reporteClienteFilter');
+        const reportePeriodoFilter = document.getElementById('reportePeriodoFilter');
+        const generarReporteTabBtnReportes = document.getElementById('generarReporteTabBtn'); // Renamed to avoid conflict with floating button
+        const reporteTotalCompras = document.getElementById('reporteTotalCompras');
+        const reporteTotalGastado = document.getElementById('reporteTotalGastado');
+        const reportePromedioCompra = document.getElementById('reportePromedioCompra');
+        const reporteTablaDetalle = document.getElementById('reporteTablaDetalle').getElementsByTagName('tbody')[0];
+        const exportarReporteBtn = document.getElementById('exportarReporteBtn');
+        const imprimirReporteBtn = document.getElementById('imprimirReporteBtn');
+
+        // Save/Load Sales Elements
+        const saveSalesBtn = document.getElementById('saveSalesBtn');
+        const loadSalesBtn = document.getElementById('loadSalesBtn');
+        const saveDateInput = document.getElementById('saveDateInput');
+        const saveCategorySelect = document.getElementById('saveCategorySelect');
+        const confirmSaveBtn = document.getElementById('confirmSaveBtn');
+        const loadSalesSelect = document.getElementById('loadSalesSelect');
+        const confirmLoadBtn = document.getElementById('confirmLoadBtn');
         
-        // Función para formatear montos en formato de moneda chilena
+        // Function to format amounts in Chilean currency format
         function formatoMonedaChilena(monto) {
             return '$ ' + monto.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
         }
         
-        // Función para mostrar notificación (Toast de Bootstrap)
+        // Function to display notification (Bootstrap Toast)
         function mostrarNotificacion(mensaje, type = 'info') {
             const toastElement = document.getElementById('liveToast');
             const toastBody = document.getElementById('toast-message');
@@ -460,15 +784,18 @@
                 toastElement.classList.add('text-bg-info');
             }
 
-            const toast = new bootstrap.Toast(toastElement);
+            // Create new Toast instance with a delay of 3000ms (3 seconds)
+            const toast = new bootstrap.Toast(toastElement, {
+                delay: 3000 // Set delay to 3 seconds
+            });
             toast.show();
         }
         
-        // Función para validar el formulario
+        // Function to validate the form
         function validarFormulario() {
             let esValido = true;
             
-            // Validar código
+            // Validate code
             if (!codigoInput.value.trim()) {
                 codigoInput.classList.add('is-invalid');
                 document.getElementById('codigo-error').textContent = 'El código es obligatorio';
@@ -478,7 +805,7 @@
                 document.getElementById('codigo-error').textContent = '';
             }
             
-            // Validar monto
+            // Validate amount
             if (!montoInput.value || isNaN(montoInput.value) || parseFloat(montoInput.value) <= 0) {
                 montoInput.classList.add('is-invalid');
                 document.getElementById('monto-error').textContent = 'Ingrese un monto válido mayor a cero';
@@ -488,25 +815,25 @@
                 document.getElementById('monto-error').textContent = '';
             }
 
-            // Cliente es opcional, no necesita validación de "obligatorio"
+            // Client is optional, no "required" validation needed
             clienteInput.classList.remove('is-invalid');
             document.getElementById('cliente-error').textContent = '';
             
             return esValido;
         }
 
-        // Event listeners para validación en tiempo real
+        // Event listeners for real-time validation
         codigoInput.addEventListener('input', validarFormulario);
         montoInput.addEventListener('input', validarFormulario);
 
-        // Función para eliminar una compra
+        // Function to delete a purchase
         function eliminarCompra(index) {
             compras.splice(index, 1);
             actualizarTablaCompras();
             mostrarNotificacion('Compra eliminada');
         }
 
-        // Función para cargar los datos de una compra en el formulario para edición
+        // Function to load purchase data into the form for editing
         function editarCompra(index) {
             const compra = compras[index];
             codigoInput.value = compra.codigo;
@@ -518,52 +845,54 @@
             clienteInput.classList.remove('is-invalid');
             montoInput.classList.remove('is-invalid');
 
-            // Cambiar el texto del botón de "Agregar Compra" a "Actualizar Compra"
+            // Change the "Add Purchase" button text to "Update Purchase"
             agregarBtn.innerHTML = '<i class="material-icons me-2">update</i> Actualizar Compra';
-            agregarBtn.classList.remove('btn-primary'); // Quitar color original
-            agregarBtn.classList.add('btn-info'); // Añadir color de acento para indicar edición
-            editandoIndex = index; // Guardar el índice del elemento que se está editando
+            agregarBtn.classList.remove('btn-primary'); // Remove original color
+            agregarBtn.classList.add('btn-info'); // Add accent color to indicate editing
+            editandoIndex = index; // Save the index of the element being edited
 
             mostrarNotificacion(`Editando compra con código: ${compra.codigo}`);
         }
         
-        // Función para agregar una compra
+        // Function to add a purchase
         function agregarCompra() {
             if (!validarFormulario()) return;
             
             const nuevaCompra = {
                 codigo: codigoInput.value.trim(),
-                cliente: clienteInput.value.trim(), // Cliente ahora es opcional
-                monto: Math.round(parseFloat(montoInput.value)) // Redondear a entero
+                cliente: clienteInput.value.trim(), // Client is now optional
+                monto: Math.round(parseFloat(montoInput.value)), // Round to integer
+                fecha: new Date().toISOString().slice(0, 10) // Add current date for reporting
             };
             
-            compras.unshift(nuevaCompra); // Añadir al principio del array para que sea el primero
+            compras.unshift(nuevaCompra); // Add to the beginning of the array to be the first
             actualizarTablaCompras();
             limpiarFormulario();
             mostrarNotificacion('Compra agregada correctamente', 'success');
         }
 
-        // Función para actualizar una compra existente
+        // Function to update an existing purchase
         function actualizarCompra() {
             if (!validarFormulario()) return;
 
             const compraActualizada = {
                 codigo: codigoInput.value.trim(),
-                cliente: clienteInput.value.trim(), // Cliente ahora es opcional
-                monto: Math.round(parseFloat(montoInput.value))
+                cliente: clienteInput.value.trim(), // Client is now optional
+                monto: Math.round(parseFloat(montoInput.value)),
+                fecha: compras[editandoIndex].fecha // Keep original date if editing
             };
 
-            compras[editandoIndex] = compraActualizada; // Sobrescribir la compra existente
+            compras[editandoIndex] = compraActualizada; // Overwrite the existing purchase
             actualizarTablaCompras();
             limpiarFormulario();
-            editandoIndex = -1; // Resetear el índice de edición
-            agregarBtn.innerHTML = '<i class="material-icons me-2">add</i> Agregar Compra'; // Restaurar texto del botón
-            agregarBtn.classList.remove('btn-info'); // Quitar color de acento si se añadió
-            agregarBtn.classList.add('btn-primary'); // Restaurar color original
+            editandoIndex = -1; // Reset editing index
+            agregarBtn.innerHTML = '<i class="material-icons me-2">add</i> Agregar Compra'; // Restore button text
+            agregarBtn.classList.remove('btn-info'); // Remove accent color if added
+            agregarBtn.classList.add('btn-primary'); // Restore original color
             mostrarNotificacion('Compra actualizada correctamente', 'success');
         }
         
-        // Función para actualizar la tabla de compras
+        // Function to update the purchases table
         function actualizarTablaCompras() {
             tablaCompras.innerHTML = '';
             
@@ -583,21 +912,22 @@
                 celdaCodigo.textContent = compra.codigo;
                 
                 const celdaCliente = fila.insertCell(1);
-                celdaCliente.textContent = compra.cliente || 'N/A'; // Mostrar N/A si el cliente es opcional y no se ingresó
+                celdaCliente.textContent = compra.cliente || 'N/A'; // Display N/A if client is optional and not entered
                 
                 const celdaMonto = fila.insertCell(2);
-                celdaMonto.textContent = formatoMonedaChilena(compra.monto); // Formato moneda chilena
+                celdaMonto.textContent = formatoMonedaChilena(compra.monto); // Chilean currency format
                 
                 const celdaAcciones = fila.insertCell(3);
+                celdaAcciones.classList.add('d-flex', 'gap-1'); // Add flexbox and gap for horizontal buttons
                 
-                // Botón de eliminar
+                // Delete button
                 const eliminarBtn = document.createElement('button');
-                eliminarBtn.className = 'btn btn-sm btn-danger me-1';
+                eliminarBtn.className = 'btn btn-sm btn-danger'; // Removed me-1 as gap handles spacing
                 eliminarBtn.innerHTML = '<i class="material-icons">delete</i>';
-                eliminarBtn.onclick = () => confirmarEliminarCompra(index); // Usar función de confirmación
+                eliminarBtn.onclick = () => confirmarEliminarCompra(index); // Use confirmation function
                 celdaAcciones.appendChild(eliminarBtn);
 
-                // Botón de editar
+                // Edit button
                 const editarBtn = document.createElement('button');
                 editarBtn.className = 'btn btn-sm btn-primary';
                 editarBtn.innerHTML = '<i class="material-icons">edit</i>';
@@ -606,24 +936,24 @@
             });
         }
         
-        // Función para confirmar la eliminación de una sola compra
+        // Function to confirm deleting a single purchase
         function confirmarEliminarCompra(index) {
-            deleteConfirmIndex = index; // Guardar el índice de la compra a eliminar
+            deleteConfirmIndex = index; // Save the index of the purchase to be deleted
             confirmDeletePurchaseModal.show();
         }
 
-        // Event listener para el botón de aceptar en el modal de eliminación individual
+        // Event listener for the accept button in the individual deletion modal
         confirmDeletePurchaseBtn.addEventListener('click', () => {
             if (deleteConfirmIndex !== -1) {
                 compras.splice(deleteConfirmIndex, 1);
                 actualizarTablaCompras();
                 mostrarNotificacion('Compra eliminada correctamente', 'success');
-                deleteConfirmIndex = -1; // Resetear el índice
+                deleteConfirmIndex = -1; // Reset the index
             }
             confirmDeletePurchaseModal.hide();
         });
 
-        // Función para limpiar el formulario
+        // Function to clear the form
         function limpiarFormulario() {
             codigoInput.value = '';
             clienteInput.value = '';
@@ -635,11 +965,11 @@
             document.getElementById('cliente-error').textContent = '';
             document.getElementById('monto-error').textContent = '';
             
-            // Limpiar lista de autocompletado
+            // Clear autocomplete list
             autocompleteList.innerHTML = '';
             autocompleteList.style.display = 'none';
 
-            // Si se estaba editando, restaurar el botón a "Agregar Compra"
+            // If editing, restore the button to "Add Purchase"
             if (editandoIndex !== -1) {
                 agregarBtn.innerHTML = '<i class="material-icons me-2">add</i> Agregar Compra';
                 agregarBtn.classList.remove('btn-info');
@@ -648,11 +978,11 @@
             }
         }
         
-        // Función para obtener clientes únicos
+        // Function to get unique clients
         function obtenerClientesUnicos() {
             const clientesUnicos = new Set();
             compras.forEach(compra => {
-                // Solo añadir clientes si no están vacíos
+                // Only add clients if they are not empty
                 if (compra.cliente.trim() !== '') {
                     clientesUnicos.add(compra.cliente);
                 }
@@ -660,7 +990,7 @@
             return Array.from(clientesUnicos);
         }
         
-        // Función para mostrar sugerencias de autocompletado
+        // Function to show autocomplete suggestions
         function mostrarSugerencias(input) {
             const valor = input.value.toLowerCase();
             autocompleteList.innerHTML = '';
@@ -677,7 +1007,7 @@
                 if (cliente.toLowerCase().includes(valor)) {
                     const div = document.createElement('div');
                     div.className = 'p-2 cursor-pointer hover:bg-light';
-                    // Resaltar la parte coincidente
+                    // Highlight the matching part
                     const regex = new RegExp(valor, 'gi');
                     const clienteResaltado = cliente.replace(regex, match => `<strong class="fw-semibold">${match}</strong>`);
                     div.innerHTML = clienteResaltado;
@@ -698,7 +1028,7 @@
             }
         }
         
-        // Función para agrupar compras por cliente
+        // Function to group purchases by client
         function agruparPorCliente() {
             if (compras.length === 0) {
                 mostrarNotificacion('No hay compras registradas para agrupar', 'danger');
@@ -706,49 +1036,59 @@
                 return;
             }
             
-            // Agrupar compras por cliente
+            // Group purchases by client
             const clientesMap = new Map();
             
             compras.forEach(compra => {
-                // Usar un nombre de cliente predeterminado si el campo cliente es opcional y está vacío
+                // Use a default client name if the client field is optional and empty
                 const nombreCliente = compra.cliente.trim() === '' ? 'Cliente sin nombre' : compra.cliente;
 
                 if (!clientesMap.has(nombreCliente)) {
                     clientesMap.set(nombreCliente, {
                         compras: [],
-                        total: 0
+                        total: 0,
+                        editableMessage: '' // Store editable message here
                     });
                 }
                 
                 const clienteData = clientesMap.get(nombreCliente);
                 clienteData.compras.push(compra);
                 clienteData.total += compra.monto;
+                // Initialize editable message if it's the first time for this client
+                if (!clienteData.editableMessage) {
+                    clienteData.editableMessage = generarTextoCliente(nombreCliente, clienteData);
+                }
             });
             
-            // Mostrar resultados agrupados usando acordeón
+            // Display grouped results using accordion
             mostrarClientesAgrupados(clientesMap);
             mostrarNotificacion('Compras agrupadas por cliente', 'info');
         }
         
-        // Función para generar el texto del mensaje para el cliente
+        // Function to generate the message text for the client (original, not editable)
         function generarTextoCliente(cliente, data) {
-            let texto = `Estimado ${cliente}\n\n`;
-            texto += `Este es el detalle de sus compras, por favor transferir a la siguiente cuenta:\n`;
-            texto += `DATOS DE LA CUENTA: ${DATOS_CUENTA}\n\n`;
-            texto += `DETALLE DE COMPRAS:\n`;
+            let texto = `Estimado(a) ${cliente},\n\n`;
+            texto += `Este es el detalle de sus compras,\n\n`;
+            texto += `DETALLE DE COMPRAS\n`;
             
             data.compras.forEach(compra => {
                 texto += `- Código: ${compra.codigo}, Monto: ${formatoMonedaChilena(compra.monto)}\n`;
             });
             
-            texto += `\nTOTAL: ${formatoMonedaChilena(data.total)}`;
+            texto += `\nTOTAL: ${formatoMonedaChilena(data.total)}\n\n`;
+            texto += `Por favor transferir a la siguiente cuenta: \n`;
+            texto += `Banco: Banco Estado\n`;
+            texto += `Tipo de Cuenta: Cuenta Rut\n`;
+            texto += `N° de cuenta: 123456789\n`;
+            texto += `Nombre: Nombre Titular\n`;
+            texto += `Rut: 12345678-9`;
             
             return texto;
         }
         
-        // Función para copiar texto al portapapeles
+        // Function to copy text to clipboard
         function copiarAlPortapapeles(texto, boton) {
-            // Crear un elemento textarea temporal
+            // Create a temporary textarea element
             const textarea = document.createElement('textarea');
             textarea.value = texto;
             textarea.setAttribute('readonly', '');
@@ -756,7 +1096,7 @@
             textarea.style.left = '-9999px';
             document.body.appendChild(textarea);
             
-            // Seleccionar el texto y copiarlo
+            // Select the text and copy it
             textarea.select();
             let exitoso = false;
             
@@ -766,15 +1106,15 @@
                 exitoso = false;
             }
             
-            // Eliminar el textarea temporal
+            // Remove the temporary textarea
             document.body.removeChild(textarea);
             
             if (exitoso) {
-                // Cambiar el estilo del botón para indicar éxito
+                // Change button style to indicate success
                 boton.classList.add('copy-success');
                 boton.innerHTML = '<i class="material-icons me-2">check</i> Copiado';
                 
-                // Restaurar el botón después de 2 segundos
+                // Restore button after 2 seconds
                 setTimeout(() => {
                     boton.classList.remove('copy-success');
                     boton.innerHTML = '<i class="material-icons me-2">content_copy</i> Copiar';
@@ -786,7 +1126,7 @@
             }
         }
         
-        // Función para mostrar clientes agrupados con Bootstrap Accordion
+        // Function to display grouped clients with Bootstrap Accordion
         function mostrarClientesAgrupados(clientesMap) {
             clientesAgrupados.innerHTML = '';
             
@@ -795,7 +1135,7 @@
                 return;
             }
             
-            let accordionIdCounter = 0; // Para IDs únicos del acordeón
+            let accordionIdCounter = 0; // For unique accordion IDs
 
             clientesMap.forEach((data, cliente) => {
                 const accordionItemId = `accordionItem${accordionIdCounter++}`;
@@ -812,10 +1152,9 @@
                     </h2>
                     <div id="${collapseTargetId}" class="accordion-collapse collapse" aria-labelledby="heading${accordionItemId}" data-bs-parent="#accordionClientes">
                         <div class="accordion-body">
-                            <!-- Contenido de los detalles del cliente -->
+                            <!-- Client details content -->
                             <div class="mb-3">
-                                <p class="h5 fw-semibold text-dark mb-2">Estimado <strong>${cliente}</strong></p>
-                                <p class="text-secondary mb-3">Este es el detalle de sus compras, por favor transferir a la siguiente cuenta:</p>
+                                <div class="editable-message-display"></div> <!-- This will hold the dynamic text -->
                                 
                                 <div class="d-flex gap-2 mb-3">
                                     <button class="editar-btn btn btn-primary d-flex align-items-center">
@@ -827,12 +1166,12 @@
                                 </div>
                             </div>
                             
-                            <!-- Área de edición (inicialmente oculta) -->
+                            <!-- Editing area (initially hidden) -->
                             <div class="editor-area d-none">
                                 <textarea class="text-editor form-control"></textarea>
                                 <div class="d-flex gap-2 mt-2">
-                                    <button class="guardar-btn btn btn-primary d-flex align-items-center">
-                                        <i class="material-icons me-2">save</i> Guardar
+                                    <button class="cerrar-editor-btn btn btn-primary d-flex align-items-center">
+                                        <i class="material-icons me-2">close</i> Cerrar Editor
                                     </button>
                                     <button class="cancelar-btn btn btn-secondary d-flex align-items-center">
                                         <i class="material-icons me-2">cancel</i> Cancelar
@@ -840,12 +1179,9 @@
                                 </div>
                             </div>
                             
-                            <!-- Información de la cuenta -->
-                            <div class="bg-info bg-opacity-10 p-2 rounded my-2 text-dark account-info-area">
-                                <p class="fw-bold">DATOS DE LA CUENTA:</p><p>${DATOS_CUENTA}</p>
-                            </div>
+                            <!-- Account information is now included in the editable text, so this div is no longer needed here. -->
                             
-                            <!-- Tabla de detalles -->
+                            <!-- Details table -->
                             <table class="table table-bordered table-sm mt-3 shadow-sm rounded overflow-hidden details-table">
                                 <thead class="table-light">
                                     <tr>
@@ -874,57 +1210,66 @@
                 // Get references to elements within the newly created accordion item
                 const editorArea = accordionItem.querySelector('.editor-area');
                 const textEditor = accordionItem.querySelector('.text-editor');
-                const mensajeDiv = accordionItem.querySelector('.mb-3'); // Contains editar-btn and copiar-btn
-                const cuentaDiv = accordionItem.querySelector('.account-info-area');
+                const mensajeDiv = accordionItem.querySelector('.mb-3'); // Contains editable-message-display and buttons
+                const editableMessageDisplay = accordionItem.querySelector('.editable-message-display');
                 const tablaDetalles = accordionItem.querySelector('.details-table');
 
                 const editarBtn = accordionItem.querySelector('.editar-btn');
                 const copiarBtn = accordionItem.querySelector('.copiar-btn');
-                const guardarBtn = accordionItem.querySelector('.guardar-btn');
+                const cerrarEditorBtn = accordionItem.querySelector('.cerrar-editor-btn');
                 const cancelarBtn = accordionItem.querySelector('.cancelar-btn');
 
+                // Generate initial text and set it to the display area
                 const textoInicial = generarTextoCliente(cliente, data);
-                textEditor.value = textoInicial;
+                editableMessageDisplay.textContent = textoInicial; // Display the initial generated text
+                
+                // Store the initial text for potential cancellation
+                editableMessageDisplay.dataset.originalText = textoInicial; 
 
                 editarBtn.addEventListener('click', (e) => {
                     e.stopPropagation();
+                    // Set the editor's value to the currently displayed text (which might be edited)
+                    textEditor.value = editableMessageDisplay.textContent; 
                     mensajeDiv.classList.add('d-none');
-                    cuentaDiv.classList.add('d-none');
                     tablaDetalles.classList.add('d-none');
                     editorArea.classList.remove('d-none');
                 });
                 
                 copiarBtn.addEventListener('click', (e) => {
                     e.stopPropagation();
+                    // This copies the current content of the textarea, including user edits
                     copiarAlPortapapeles(textEditor.value, copiarBtn);
                 });
                 
-                guardarBtn.addEventListener('click', (e) => {
+                cerrarEditorBtn.addEventListener('click', (e) => {
                     e.stopPropagation();
+                    // Update the displayed text with the content from the editor
+                    editableMessageDisplay.textContent = textEditor.value; 
                     editorArea.classList.add('d-none');
                     mensajeDiv.classList.remove('d-none');
-                    cuentaDiv.classList.remove('d-none');
                     tablaDetalles.classList.remove('d-none');
-                    mostrarNotificacion('Texto guardado', 'info');
+                    mostrarNotificacion('Editor cerrado. El texto mostrado ha sido actualizado temporalmente.', 'info');
                 });
                 
                 cancelarBtn.addEventListener('click', (e) => {
                     e.stopPropagation();
+                    // Revert the editor's content and the displayed text to the original generated text
+                    textEditor.value = editableMessageDisplay.dataset.originalText;
+                    editableMessageDisplay.textContent = editableMessageDisplay.dataset.originalText;
                     editorArea.classList.add('d-none');
                     mensajeDiv.classList.remove('d-none');
-                    cuentaDiv.classList.remove('d-none');
                     tablaDetalles.classList.remove('d-none');
-                    textEditor.value = textoInicial;
+                    mostrarNotificacion('Edición cancelada. El texto ha vuelto a su versión original.', 'info');
                 });
             });
         }
         
-        // Función para confirmar antes de limpiar todo
+        // Function to confirm before clearing all
         function confirmarLimpiarTodo() {
             confirmClearAllModal.show();
         }
         
-        // Función para limpiar todo
+        // Function to clear all
         function limpiarTodo() {
             compras = [];
             actualizarTablaCompras();
@@ -934,208 +1279,46 @@
             confirmClearAllModal.hide();
         }
 
-        // Función para guardar datos en localStorage
-        async function guardarDatosLocal() {
-            const saveName = prompt("Introduce un nombre para esta sesión de compras (dejar en blanco para usar la fecha/hora):");
-            const timestamp = new Date().toLocaleString();
-            const key = saveName && saveName.trim() !== '' ? `comprasApp_save_${saveName.trim()}` : `comprasApp_save_${Date.now()}`;
-            const display_name = saveName && saveName.trim() !== '' ? saveName.trim() : timestamp;
+        // Function to export data to a JSON file (this is for the general report, not the removed local storage export)
+        function exportarDatosReporte() {
+            // This function is for the "Exportar" button in the Reports tab
+            const selectedClient = reporteClienteFilter.value;
+            const selectedPeriod = reportePeriodoFilter.value;
+            const filteredCompras = filtrarCompras(selectedClient, selectedPeriod);
 
-            try {
-                localStorage.setItem(key, JSON.stringify(compras));
-                
-                // Calcular estadísticas para guardar en metadatos
-                const itemCount = compras.length;
-                const totalAmount = compras.reduce((sum, compra) => sum + compra.monto, 0);
-
-                // Actualizar la lista de metadatos de guardados
-                let savesMetadata = JSON.parse(localStorage.getItem(SAVES_METADATA_KEY) || '[]');
-                // Eliminar duplicados si el nombre ya existe
-                savesMetadata = savesMetadata.filter(item => item.key !== key);
-                savesMetadata.push({ 
-                    key: key, 
-                    name: display_name, 
-                    timestamp: new Date().toISOString(),
-                    itemCount: itemCount,
-                    totalAmount: totalAmount
-                });
-                localStorage.setItem(SAVES_METADATA_KEY, JSON.stringify(savesMetadata));
-
-                mostrarNotificacion(`Datos guardados como: "${display_name}"`, 'success');
-                displaySavedListStats(); // Actualizar las estadísticas mostradas
-            } catch (e) {
-                mostrarNotificacion('Error al guardar datos localmente: ' + e.message, 'danger');
-            }
-        }
-
-        // Función para cargar datos desde localStorage
-        function cargarDatosLocal(keyToLoad = null) {
-            try {
-                if (keyToLoad) {
-                    const data = localStorage.getItem(keyToLoad);
-                    if (data) {
-                        compras = JSON.parse(data);
-                        actualizarTablaCompras();
-                        mostrarNotificacion(`Datos cargados exitosamente`, 'success');
-                        limpiarFormulario(); // Limpiar formulario después de cargar
-                        loadDataModal.hide();
-                    } else {
-                        mostrarNotificacion('No se encontraron datos para la clave seleccionada.', 'danger');
-                    }
-                } else {
-                    // Si no se especifica una clave, mostrar el diálogo de selección
-                    mostrarDialogoCargarDatos();
-                }
-            } catch (e) {
-                mostrarNotificacion('Error al cargar datos localmente: ' + e.message, 'danger');
-            }
-        }
-
-        // Función para eliminar un guardado específico
-        function eliminarGuardado(key, displayName) {
-            try {
-                localStorage.removeItem(key);
-                let savesMetadata = JSON.parse(localStorage.getItem(SAVES_METADATA_KEY) || '[]');
-                savesMetadata = savesMetadata.filter(item => item.key !== key);
-                localStorage.setItem(SAVES_METADATA_KEY, JSON.stringify(savesMetadata));
-                mostrarNotificacion(`Sesión "${displayName}" eliminada.`, 'success');
-                mostrarDialogoCargarDatos(); // Actualizar la lista en el diálogo
-                displaySavedListStats(); // Actualizar las estadísticas mostradas
-            } catch (e) {
-                mostrarNotificacion('Error al eliminar el guardado: ' + e.message, 'danger');
-            }
-        }
-
-        // Función para mostrar el diálogo de carga de datos
-        function mostrarDialogoCargarDatos() {
-            savedDataList.innerHTML = ''; // Limpiar lista anterior
-            const savesMetadata = JSON.SE(localStorage.getItem(SAVES_METADATA_KEY) || '[]');
-
-            if (savesMetadata.length === 0) {
-                const li = document.createElement('li');
-                li.className = 'list-group-item text-center text-muted py-3';
-                li.textContent = 'No hay sesiones guardadas.';
-                savedDataList.appendChild(li);
-            } else {
-                // Ordenar por fecha de guardado (más reciente primero)
-                savesMetadata.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
-
-                savesMetadata.forEach(item => {
-                    const li = document.createElement('li');
-                    li.className = 'list-group-item d-flex justify-content-between align-items-center';
-                    li.innerHTML = `
-                        <span class="flex-grow-1">
-                            <strong class="d-block text-dark">${item.name}</strong> 
-                            <span class="small text-muted">Guardado: ${new Date(item.timestamp).toLocaleString()}</span>
-                            <br>
-                            <span class="small text-muted">Items: ${item.itemCount}, Total: ${formatoMonedaChilena(item.totalAmount)}</span>
-                        </span>
-                        <div class="d-flex align-items-center gap-2">
-                            <button class="load-item-btn btn btn-sm btn-outline-primary" data-key="${item.key}" title="Cargar">
-                                <i class="material-icons">cloud_download</i>
-                            </button>
-                            <button class="delete-item-btn btn btn-sm btn-outline-danger" data-key="${item.key}" data-name="${item.name}" title="Eliminar">
-                                <i class="material-icons">delete</i>
-                            </button>
-                        </div>
-                    `;
-                    savedDataList.appendChild(li);
-                });
-
-                // Añadir event listeners a los botones de cargar y eliminar
-                savedDataList.querySelectorAll('.load-item-btn').forEach(button => {
-                    button.addEventListener('click', (e) => {
-                        const key = e.currentTarget.getAttribute('data-key');
-                        cargarDatosLocal(key);
-                    });
-                });
-
-                savedDataList.querySelectorAll('.delete-item-btn').forEach(button => {
-                    button.addEventListener('click', (e) => {
-                        const key = e.currentTarget.getAttribute('data-key');
-                        const name = e.currentTarget.getAttribute('data-name');
-                        if (confirm(`¿Estás seguro de que quieres eliminar la sesión "${name}"?`)) {
-                            eliminarGuardado(key, name);
-                        }
-                    });
-                });
-            }
-
-            loadDataModal.show();
-        }
-
-        // Función para mostrar las estadísticas de todos los listados guardados
-        function displaySavedListStats() {
-            savedListStatsDiv.innerHTML = ''; // Limpiar contenido anterior
-            const savesMetadata = JSON.parse(localStorage.getItem(SAVES_METADATA_KEY) || '[]');
-
-            if (savesMetadata.length === 0) {
-                savedListStatsDiv.innerHTML = '<p class="text-center text-muted">No hay listados guardados para mostrar estadísticas.</p>';
+            if (filteredCompras.length === 0) {
+                mostrarNotificacion('No hay datos en el reporte actual para exportar.', 'info');
                 return;
             }
 
-            // Ordenar por fecha de guardado (más reciente primero)
-            savesMetadata.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+            const dataToExport = {
+                filtros: {
+                    cliente: selectedClient || 'Todos',
+                    periodo: selectedPeriod || 'Todo el historial'
+                },
+                resumen: {
+                    totalCompras: filteredCompras.length,
+                    totalGastado: filteredCompras.reduce((sum, compra) => sum + compra.monto, 0),
+                    promedioPorCompra: filteredCompras.length > 0 ? filteredCompras.reduce((sum, compra) => sum + compra.monto, 0) / filteredCompras.length : 0
+                },
+                detalle: filteredCompras
+            };
 
-            savesMetadata.forEach(item => {
-                const statsItem = document.createElement('div');
-                statsItem.className = 'stats-item card shadow-sm p-3';
-                statsItem.innerHTML = `
-                    <strong class="h6 text-indigo-700">${item.name}</strong>
-                    <span class="d-block small text-muted">Guardado: ${new Date(item.timestamp).toLocaleString()}</span>
-                    <span class="d-block small text-muted">Items: ${item.itemCount}</span>
-                    <span class="d-block small text-muted">Total: ${formatoMonedaChilena(item.totalAmount)}</span>
-                `;
-                savedListStatsDiv.appendChild(statsItem);
-            });
-        }
-
-        // Función para exportar datos a un archivo JSON
-        function exportarDatos() {
-            if (compras.length === 0) {
-                mostrarNotificacion('No hay datos para exportar.', 'info');
-                return;
-            }
-            const dataStr = JSON.stringify(compras, null, 2); // Pretty print JSON
+            const dataStr = JSON.stringify(dataToExport, null, 2);
             const blob = new Blob([dataStr], { type: 'application/json' });
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = `compras_export_${new Date().toISOString().slice(0,10)}.json`;
+            a.download = `reporte_compras_${new Date().toISOString().slice(0,10)}.json`;
             document.body.appendChild(a);
             a.click();
             document.body.removeChild(a);
             URL.revokeObjectURL(url);
-            mostrarNotificacion('Datos exportados correctamente.', 'success');
+            mostrarNotificacion('Reporte exportado correctamente.', 'success');
         }
 
-        // Función para importar datos desde un archivo JSON
-        function importarDatos(event) {
-            const file = event.target.files[0];
-            if (!file) {
-                return;
-            }
-            const reader = new FileReader();
-            reader.onload = (e) => {
-                try {
-                    const importedData = JSON.parse(e.target.result);
-                    if (Array.isArray(importedData) && importedData.every(item => item.codigo && item.monto)) {
-                        compras = importedData;
-                        actualizarTablaCompras();
-                        mostrarNotificacion('Datos importados correctamente.', 'success');
-                        limpiarFormulario();
-                    } else {
-                        mostrarNotificacion('El archivo JSON no tiene el formato esperado.', 'danger');
-                    }
-                } catch (error) {
-                    mostrarNotificacion('Error al leer el archivo JSON: ' + error.message, 'danger');
-                }
-            };
-            reader.readAsText(file);
-        }
-
-        // Función para generar el reporte
-        function generarReporte() {
+        // Function to generate the report (in the Purchase Registration tab)
+        function generarReporteRegistroTab() {
             if (compras.length === 0) {
                 mostrarNotificacion('No hay compras registradas para generar un reporte', 'danger');
                 return;
@@ -1146,7 +1329,7 @@
             const comprasConNombre = compras.filter(compra => compra.cliente.trim() !== '');
             const comprasSinNombre = compras.filter(compra => compra.cliente.trim() === '');
 
-            // Sección de compras con nombre
+            // Section of purchases with name
             reporteTexto += "--- COMPRAS CON CLIENTE ESPECIFICADO ---\n";
             if (comprasConNombre.length > 0) {
                 let totalConNombre = 0;
@@ -1179,10 +1362,214 @@
             reporteTexto += `CANTIDAD TOTAL DE COMPRAS: ${compras.length}\n`;
             reporteTexto += "\n---------------------------\n";
 
-            document.getElementById('report-content').textContent = reporteTexto; // Mostrar el reporte en el pre
+            document.getElementById('report-content').textContent = reporteTexto; // Display the report in the pre
             reportModal.show();
         }
-        
+
+        // --- Functions for the new Reports tab ---
+
+        // Function to populate the client filter in the Reports tab
+        function populateReporteClienteFilter() {
+            const clientes = obtenerClientesUnicos();
+            reporteClienteFilter.innerHTML = '<option value="">Seleccionar cliente</option>'; // Reset and add default option
+            clientes.forEach(cliente => {
+                const option = document.createElement('option');
+                option.value = cliente;
+                option.textContent = cliente;
+                reporteClienteFilter.appendChild(option);
+            });
+        }
+
+        // Function to filter purchases by client and period
+        function filtrarCompras(cliente, periodo) {
+            let filteredCompras = [...compras]; // Start with all purchases
+
+            // Filter by client
+            if (cliente) {
+                filteredCompras = filteredCompras.filter(compra => compra.cliente === cliente);
+            }
+
+            // Filter by period
+            if (periodo && periodo !== 'all') {
+                const now = new Date();
+                filteredCompras = filteredCompras.filter(compra => {
+                    const purchaseDate = new Date(compra.fecha); // Assuming 'fecha' is in YYYY-MM-DD format
+                    switch (periodo) {
+                        case 'today':
+                            return purchaseDate.toDateString() === now.toDateString();
+                        case 'last7days':
+                            const sevenDaysAgo = new Date(now);
+                            sevenDaysAgo.setDate(now.getDate() - 7);
+                            return purchaseDate >= sevenDaysAgo && purchaseDate <= now;
+                        case 'last30days':
+                            const thirtyDaysAgo = new Date(now);
+                            thirtyDaysAgo.setDate(now.getDate() - 30);
+                            return purchaseDate >= thirtyDaysAgo && purchaseDate <= now;
+                        case 'thisMonth':
+                            return purchaseDate.getMonth() === now.getMonth() && purchaseDate.getFullYear() === now.getFullYear();
+                        case 'lastMonth':
+                            const lastMonth = new Date(now);
+                            lastMonth.setMonth(now.getMonth() - 1);
+                            return purchaseDate.getMonth() === lastMonth.getMonth() && purchaseDate.getFullYear() === lastMonth.getFullYear();
+                        case 'thisYear':
+                            return purchaseDate.getFullYear() === now.getFullYear();
+                        default:
+                            return true; // Should not happen with 'all' handled
+                    }
+                });
+            }
+            return filteredCompras;
+        }
+
+        // Function to generate and display the report in the Reports tab
+        function generarReporteTab() {
+            const selectedClient = reporteClienteFilter.value;
+            const selectedPeriod = reportePeriodoFilter.value;
+
+            const filteredCompras = filtrarCompras(selectedClient, selectedPeriod);
+
+            // Update summary cards
+            const totalItems = filteredCompras.length;
+            const totalAmount = filteredCompras.reduce((sum, compra) => sum + compra.monto, 0);
+            const averageAmount = totalItems > 0 ? totalAmount / totalItems : 0;
+
+            reporteTotalCompras.textContent = totalItems;
+            reporteTotalGastado.textContent = formatoMonedaChilena(totalAmount);
+            reportePromedioCompra.textContent = formatoMonedaChilena(Math.round(averageAmount));
+
+            // Update detail table
+            reporteTablaDetalle.innerHTML = '';
+            if (filteredCompras.length === 0) {
+                const fila = reporteTablaDetalle.insertRow();
+                const celda = fila.insertCell(0);
+                celda.colSpan = 4;
+                celda.textContent = 'No hay datos para mostrar con los filtros seleccionados';
+                celda.className = 'text-center text-muted py-3';
+            } else {
+                filteredCompras.forEach(compra => {
+                    const fila = reporteTablaDetalle.insertRow();
+                    fila.insertCell(0).textContent = compra.fecha;
+                    fila.insertCell(1).textContent = compra.cliente || 'N/A';
+                    fila.insertCell(2).textContent = compra.codigo;
+                    fila.insertCell(3).textContent = formatoMonedaChilena(compra.monto);
+                });
+            }
+            mostrarNotificacion('Reporte generado correctamente', 'success');
+        }
+
+        // Function to print the current report (from the Reports tab)
+        function imprimirReporte() {
+            const printContent = document.getElementById('tab-reportes').cloneNode(true);
+            
+            // Remove buttons and other interactive elements from the cloned content for printing
+            const buttons = printContent.querySelectorAll('button, input[type="file"], label.btn, .floating-buttons-container');
+            buttons.forEach(btn => btn.remove());
+
+            const filters = printContent.querySelectorAll('.row.g-3.mb-4');
+            filters.forEach(filter => filter.style.display = 'none'); // Hide filters for print
+
+            const printWindow = window.open('', '', 'height=600,width=800');
+            printWindow.document.write('<html><head><title>Reporte de Compras</title>');
+            // Include Bootstrap CSS for basic styling in print
+            printWindow.document.write('<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">');
+            printWindow.document.write('<style>');
+            printWindow.document.write('body { font-family: \'Inter\', sans-serif; margin: 20px; }');
+            printWindow.document.write('.card { border: 1px solid #dee2e6; margin-bottom: 1rem; }');
+            printWindow.document.write('.card-header { background-color: #3f51b5; color: white; padding: 0.75rem 1.25rem; border-bottom: 1px solid rgba(0,0,0,.125); }');
+            printWindow.document.write('.table { width: 100%; margin-bottom: 1rem; color: #212529; border-collapse: collapse; }');
+            printWindow.document.write('.table th, .table td { padding: 0.75rem; vertical-align: top; border-top: 1px solid #dee2e6; }');
+            printWindow.document.write('.table thead th { vertical-align: bottom; border-bottom: 2px solid #dee2e6; }');
+            printWindow.document.write('.table-striped tbody tr:nth-of-type(odd) { background-color: rgba(0,0,0,.05); }');
+            printWindow.document.write('.text-center { text-align: center; }');
+            printWindow.document.write('.text-muted { color: #6c757d; }');
+            printWindow.document.write('.h4, .h5, .h6 { margin-bottom: 0.5rem; font-weight: 500; line-height: 1.2; }');
+            printWindow.document.write('.fw-bold { font-weight: 700 !important; }');
+            printWindow.document.write('.text-primary { color: #0d6efd !important; }');
+            printWindow.document.write('.text-success { color: #198754 !important; }');
+            printWindow.document.write('.text-info { color: #0dcaf0 !important; }');
+            printWindow.document.write('</style>');
+            printWindow.document.write('</head><body>');
+            printWindow.document.write(printContent.innerHTML);
+            printWindow.document.close();
+            printWindow.print();
+        }
+
+        // --- Local Storage Functions ---
+
+        // Function to get today's date in YYYY-MM-DD format
+        function getTodayDate() {
+            const today = new Date();
+            const year = today.getFullYear();
+            const month = String(today.getMonth() + 1).padStart(2, '0'); // Months are 0-indexed
+            const day = String(today.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
+        }
+
+        // Function to save sales data to local storage
+        function saveSalesData(date, category) {
+            const saveKey = `sales_${date}_${category}`;
+            localStorage.setItem(saveKey, JSON.stringify(compras));
+
+            let savesMetadata = JSON.parse(localStorage.getItem(SAVES_METADATA_KEY) || '[]');
+            
+            // Check if this specific save (date + category) already exists in metadata
+            const existingIndex = savesMetadata.findIndex(
+                (save) => save.date === date && save.category === category
+            );
+
+            if (existingIndex > -1) {
+                // Update existing entry
+                savesMetadata[existingIndex].timestamp = new Date().toISOString();
+            } else {
+                // Add new entry
+                savesMetadata.push({
+                    date: date,
+                    category: category,
+                    key: saveKey,
+                    timestamp: new Date().toISOString()
+                });
+            }
+            localStorage.setItem(SAVES_METADATA_KEY, JSON.stringify(savesMetadata));
+            mostrarNotificacion(`Ventas de ${date} (${category}) guardadas correctamente.`, 'success');
+            populateLoadSalesDropdown(); // Update load dropdown after saving
+        }
+
+        // Function to load sales data from local storage
+        function loadSalesData(saveKey) {
+            const savedData = localStorage.getItem(saveKey);
+            if (savedData) {
+                compras = JSON.parse(savedData);
+                actualizarTablaCompras();
+                agruparPorCliente(); // Re-group after loading
+                generarReporteTab(); // Update reports tab
+                mostrarNotificacion('Ventas cargadas correctamente.', 'success');
+            } else {
+                mostrarNotificacion('No se encontraron ventas para la selección.', 'danger');
+            }
+        }
+
+        // Function to populate the load sales dropdown
+        function populateLoadSalesDropdown() {
+            loadSalesSelect.innerHTML = '<option value="">-- Seleccionar --</option>';
+            const savesMetadata = JSON.parse(localStorage.getItem(SAVES_METADATA_KEY) || '[]');
+            
+            // Sort by date and then category for better organization
+            savesMetadata.sort((a, b) => {
+                const dateComparison = new Date(b.date) - new Date(a.date);
+                if (dateComparison === 0) {
+                    return a.category.localeCompare(b.category);
+                }
+                return dateComparison;
+            });
+
+            savesMetadata.forEach(save => {
+                const option = document.createElement('option');
+                option.value = save.key;
+                option.textContent = `${save.date} - ${save.category === 'LiveFacebook' ? 'Live Facebook' : 'Ventas Diarias'}`;
+                loadSalesSelect.appendChild(option);
+            });
+        }
+
         // Event listeners for buttons
         agregarBtn.addEventListener('click', () => {
             if (editandoIndex === -1) {
@@ -1194,11 +1581,7 @@
 
         agruparBtn.addEventListener('click', agruparPorCliente);
         limpiarBtn.addEventListener('click', confirmarLimpiarTodo);
-        guardarDatosBtn.addEventListener('click', guardarDatosLocal);
-        cargarDatosBtn.addEventListener('click', () => cargarDatosLocal());
-        exportarDatosBtn.addEventListener('click', exportarDatos);
-        importarArchivoInput.addEventListener('change', importarDatos);
-        generarReporteBtn.addEventListener('click', generarReporte);
+        generarReporteBtn.addEventListener('click', generarReporteRegistroTab); // Event listener for the new floating button
 
         // Dialog event listeners
         confirmClearAllBtn.addEventListener('click', limpiarTodo);
@@ -1207,24 +1590,24 @@
             copiarAlPortapapeles(document.getElementById('report-content').textContent, this);
         });
         
-        // Event listener para el autocompletado
+        // Event listener for autocomplete
         clienteInput.addEventListener('input', function() {
             mostrarSugerencias(this);
         });
         
-        // Cerrar la lista de autocompletado si se hace clic fuera de ella
+        // Close autocomplete list if clicked outside
         document.addEventListener('click', function(e) {
             if (e.target !== clienteInput && e.target !== autocompleteList) {
                 autocompleteList.style.display = 'none';
             }
         });
         
-        // Navegación con teclado para el autocompletado
+        // Keyboard navigation for autocomplete
         clienteInput.addEventListener('keydown', function(e) {
             const items = autocompleteList.getElementsByTagName('div');
             if (items.length === 0) return;
             
-            // Encontrar el elemento activo actual
+            // Find the current active element
             let activeIndex = -1;
             for (let i = 0; i < items.length; i++) {
                 if (items[i].classList.contains('autocomplete-active')) {
@@ -1233,58 +1616,154 @@
                 }
             }
             
-            // Tecla flecha abajo
+            // Down arrow key
             if (e.keyCode === 40) {
                 e.preventDefault();
                 activeIndex++;
                 if (activeIndex >= items.length) activeIndex = 0;
                 setActiveItem(items, activeIndex);
             }
-            // Tecla flecha arriba
+            // Up arrow key
             else if (e.keyCode === 38) {
                 e.preventDefault();
                 activeIndex--;
                 if (activeIndex < 0) activeIndex = items.length - 1;
                 setActiveItem(items, activeIndex);
             }
-            // Tecla Enter
+            // Enter key
             else if (e.keyCode === 13 && activeIndex > -1) {
                 e.preventDefault();
                 items[activeIndex].click();
             }
         });
         
-        // Función para establecer el elemento activo en la lista de autocompletado
+        // Function to set the active item in the autocomplete list
         function setActiveItem(items, index) {
-            // Eliminar clase activa de todos los elementos
+            // Remove active class from all elements
             for (let i = 0; i < items.length; i++) {
                 items[i].classList.remove('autocomplete-active');
             }
-            // Agregar clase activa al elemento seleccionado
+            // Add active class to the selected element
             if (index > -1 && items.length > 0) {
                 items[index].classList.add('autocomplete-active');
-                // Asegurar que el elemento sea visible en la lista
+                // Ensure the element is visible in the list
                 items[index].scrollIntoView({ block: 'nearest' });
             }
         }
         
         // Tab switching logic (using Bootstrap's built-in tab functionality)
         document.addEventListener('shown.bs.tab', function (event) {
-            if (event.target.id === 'dashboard-tab') {
-                displaySavedListStats(); // Update stats when dashboard tab is clicked
+            if (event.target.id === 'reportes-tab-sidebar') {
+                populateReporteClienteFilter(); // Populate client filter when Reports tab is clicked
+                generarReporteTab(); // Generate initial report
+            }
+            // Close sidebar if on small screen after tab is clicked
+            if (window.innerWidth < 768) {
+                document.body.classList.remove('sidebar-expanded');
+                document.body.classList.remove('no-scroll'); // Ensure no-scroll is removed
+            }
+        });
+
+        // Function to toggle sidebar visibility
+        function toggleSidebar() {
+            document.body.classList.toggle('sidebar-expanded');
+            if (window.innerWidth < 768) { // Only apply no-scroll on small screens
+                document.body.classList.toggle('no-scroll', document.body.classList.contains('sidebar-expanded'));
+            }
+        }
+
+        // Event listener for sidebar toggle button
+        if (sidebarToggleBtn) {
+            sidebarToggleBtn.addEventListener('click', toggleSidebar);
+        }
+
+        // Close sidebar when clicking outside on small screens or on a sidebar link
+        document.addEventListener('click', function(event) {
+            if (window.innerWidth < 768 && document.body.classList.contains('sidebar-expanded')) {
+                const isClickInsideSidebar = sidebar.contains(event.target);
+                const isClickOnToggleButton = sidebarToggleBtn.contains(event.target);
+                
+                // If click is outside sidebar and not on the toggle button, close sidebar
+                if (!isClickInsideSidebar && !isClickOnToggleButton) {
+                    document.body.classList.remove('sidebar-expanded');
+                    document.body.classList.remove('no-scroll'); // Remove no-scroll when sidebar closes
+                } else if (isClickInsideSidebar && event.target.closest('.sidebar .nav-link')) {
+                    // If click is inside sidebar and on a nav link, close sidebar after a small delay
+                    setTimeout(() => {
+                        document.body.classList.remove('sidebar-expanded');
+                        document.body.classList.remove('no-scroll'); // Remove no-scroll when sidebar closes via nav link
+                    }, 150); 
+                }
+            }
+        });
+
+        // Adjust sidebar state on resize
+        window.addEventListener('resize', function() {
+            // On large screens, ensure sidebar is always visible and toggle button is hidden
+            if (window.innerWidth >= 768) {
+                document.body.classList.remove('sidebar-expanded');
+                document.body.classList.remove('no-scroll'); // Ensure no-scroll is off on large screens
+            } else {
+                // If resizing to small screen and sidebar is expanded, re-apply no-scroll
+                if (document.body.classList.contains('sidebar-expanded')) {
+                    document.body.classList.add('no-scroll');
+                }
+            }
+        });
+
+        // Event listeners for Reports tab filters and buttons
+        reporteClienteFilter.addEventListener('change', generarReporteTab);
+        reportePeriodoFilter.addEventListener('change', generarReporteTab);
+        generarReporteTabBtnReportes.addEventListener('click', generarReporteTab); // Use the renamed variable here
+        exportarReporteBtn.addEventListener('click', exportarDatosReporte);
+        imprimirReporteBtn.addEventListener('click', imprimirReporte);
+
+        // Event listeners for Save/Load Sales buttons
+        saveSalesBtn.addEventListener('click', () => {
+            saveDateInput.value = getTodayDate(); // Set default date to today
+            saveSalesModal.show();
+        });
+
+        confirmSaveBtn.addEventListener('click', () => {
+            const date = saveDateInput.value;
+            const category = saveCategorySelect.value;
+            if (date && category) {
+                saveSalesData(date, category);
+                saveSalesModal.hide();
+            } else {
+                mostrarNotificacion('Por favor, selecciona una fecha y categoría para guardar.', 'danger');
+            }
+        });
+
+        loadSalesBtn.addEventListener('click', () => {
+            populateLoadSalesDropdown(); // Populate dropdown with saved sales
+            loadSalesModal.show();
+        });
+
+        confirmLoadBtn.addEventListener('click', () => {
+            const selectedKey = loadSalesSelect.value;
+            if (selectedKey) {
+                loadSalesData(selectedKey);
+                loadSalesModal.hide();
+            } else {
+                mostrarNotificacion('Por favor, selecciona una venta para cargar.', 'danger');
             }
         });
 
         // Initial load
         document.addEventListener('DOMContentLoaded', function() {
-            const savesMetadata = JSON.parse(localStorage.getItem(SAVES_METADATA_KEY) || '[]');
-            if (savesMetadata.length > 0) {
-                const lastSave = savesMetadata.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))[0];
-                cargarDatosLocal(lastSave.key);
-            } else {
-                actualizarTablaCompras();
+            actualizarTablaCompras();
+            
+            // Initial check for sidebar state on load for small screens
+            if (window.innerWidth < 768) {
+                document.body.classList.remove('sidebar-expanded');
+                document.body.classList.remove('no-scroll'); // Ensure no-scroll is off initially on small screens
             }
-            displaySavedListStats(); // Display stats on initial load for the dashboard tab
+            // Populate and generate report for the Reports tab if it's the active tab on load
+            if (document.getElementById('tab-reportes').classList.contains('show')) {
+                populateReporteClienteFilter();
+                generarReporteTab();
+            }
         });
     </script>
 </body>
